@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蝦皮檢貨系統 - 完整版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 15px;
+            margin: 0;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            color: #333;
+            padding: 25px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .sync-status {
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .product-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .product-group {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+        }
+
+        .product-header {
+            background: linear-gradient(135deg, #2d3748, #4a5568);
+            color: white;
+            padding: 25px;
+            text-align: center;
+            position: relative;
+        }
+
+        .product-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+            pointer-events: none;
+        }
+
+        .main-sku {
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .product-name {
+            font-size: 20px;
+            font-weight: 700;
+            line-height: 1.4;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .variants-container {
+            padding: 20px;
+        }
+
+        .variant-card {
+            background: linear-gradient(135deg, #f8f9ff, #ffffff);
+            border-radius: 16px;
+            padding: 22px;
+            margin-bottom: 18px;
+            border: 2px solid rgba(102, 126, 234, 0.1);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .variant-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .variant-card.checked {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            border-color: #28a745;
+            transform: scale(0.98);
+            box-shadow: 0 6px 25px rgba(40, 167, 69, 0.2);
+        }
+
+        .variant-card.shortage {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border-color: #ffc107;
+            box-shadow: 0 6px 25px rgba(255, 193, 7, 0.2);
+        }
+
+        .variant-card.restock {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            border-color: #dc3545;
+            box-shadow: 0 6px 25px rgba(220, 53, 69, 0.2);
+        }
+
+        .variant-header {
+            margin-bottom: 20px;
+        }
+
+        .location-primary {
+            font-size: 28px;
+            font-weight: 800;
+            color: #2d3748;
+            margin-bottom: 12px;
+            text-align: center;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .spec-name {
+            font-size: 22px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .option-sku-quantity {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(102, 126, 234, 0.1);
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+
+        .option-sku {
+            font-size: 16px;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .quantity-display {
+            font-size: 18px;
+            font-weight: 800;
+            color: #2d3748;
+        }
+
+        .variant-details {
+            margin-bottom: 15px;
+        }
+
+        .detail-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 16px;
+            padding: 8px 0;
+        }
+
+        .detail-icon {
+            font-size: 18px;
+            margin-right: 12px;
+            width: 24px;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
+        }
+
+        .detail-text {
+            color: #4a5568;
+            font-weight: 600;
+        }
+
+        .status-display {
+            text-align: center;
+            margin-bottom: 18px;
+            font-weight: 700;
+            font-size: 18px;
+            padding: 12px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin-top: 5px;
+        }
+
+        .action-btn {
+            padding: 16px 12px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-checked {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+        }
+
+        .btn-shortage {
+            background: linear-gradient(135deg, #ed8936, #dd6b20);
+            color: white;
+        }
+
+        .btn-restock {
+            background: linear-gradient(135deg, #f56565, #e53e3e);
+            color: white;
+        }
+
+        .btn-restore {
+            background: linear-gradient(135deg, #718096, #4a5568);
+            color: white;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .action-btn:active {
+            transform: scale(0.95);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            margin: 50% auto;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 350px;
+            transform: translateY(-50%);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .modal-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 25px;
+            text-align: center;
+            color: #2d3748;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .number-input {
+            width: 100%;
+            padding: 18px;
+            font-size: 28px;
+            text-align: center;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 12px;
+            margin-bottom: 25px;
+            background: rgba(255, 255, 255, 0.8);
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .number-pad {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .number-btn {
+            padding: 18px;
+            font-size: 22px;
+            font-weight: 700;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.9));
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            color: #4a5568;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .number-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+            border-color: rgba(102, 126, 234, 0.4);
+        }
+
+        .number-btn:active {
+            transform: scale(0.95);
+        }
+
+        .modal-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .modal-btn {
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-confirm {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+        }
+
+        .btn-cancel {
+            background: linear-gradient(135deg, #718096, #4a5568);
+            color: white;
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-btn:active {
+            transform: scale(0.95);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            margin-right: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-checked { background: linear-gradient(135deg, #48bb78, #38a169); }
+        .status-shortage { background: linear-gradient(135deg, #ed8936, #dd6b20); }
+        .status-restock { background: linear-gradient(135deg, #f56565, #e53e3e); }
+        .status-pending { background: linear-gradient(135deg, #e2e8f0, #cbd5e0); }
+
+        .success-banner {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);
+        }
+
+        .sync-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            border-radius: 25px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 1001;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .sync-indicator.uploading {
+            background: rgba(255, 193, 7, 0.9);
+            color: #333;
+        }
+
+        .sync-indicator.success {
+            background: rgba(72, 187, 120, 0.9);
+            color: white;
+        }
+
+        .sync-indicator.error {
+            background: rgba(245, 101, 101, 0.9);
+            color: white;
+        }
+
+        .sync-indicator.hidden {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+    </style>
+</head>
+<body>
+    <div class="success-banner">
+        ⚡ 完整版：即時UI更新 + 3秒自動同步
+    </div>
+
+    <!-- 同步狀態指示器 -->
+    <div id="syncIndicator" class="sync-indicator hidden"></div>
+
+    <div class="header">
+        <h1>🦐 蝦皮檢貨系統 (完整版)</h1>
+        <div class="sync-status" id="syncStatus">
+            <span class="status-indicator status-pending"></span>
+            準備連接中...
+        </div>
+    </div>
+
+    <div id="loadingDiv" class="loading">
+        正在加載商品資料...
+    </div>
+
+    <div id="productList" class="product-list" style="display: none;">
+        <!-- 商品卡片將動態生成 -->
+    </div>
+
+    <!-- 數量輸入模態框 -->
+    <div id="quantityModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title" id="modalTitle">輸入數量</div>
+            <input type="text" id="quantityInput" class="number-input" readonly>
+            <div class="number-pad">
+                <button class="number-btn" onclick="addNumber('1')">1</button>
+                <button class="number-btn" onclick="addNumber('2')">2</button>
+                <button class="number-btn" onclick="addNumber('3')">3</button>
+                <button class="number-btn" onclick="addNumber('4')">4</button>
+                <button class="number-btn" onclick="addNumber('5')">5</button>
+                <button class="number-btn" onclick="addNumber('6')">6</button>
+                <button class="number-btn" onclick="addNumber('7')">7</button>
+                <button class="number-btn" onclick="addNumber('8')">8</button>
+                <button class="number-btn" onclick="addNumber('9')">9</button>
+                <button class="number-btn" onclick="clearNumber()">清除</button>
+                <button class="number-btn" onclick="addNumber('0')">0</button>
+                <button class="number-btn" onclick="deleteNumber()">刪除</button>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn btn-cancel" onclick="closeModal()">取消</button>
+                <button class="modal-btn btn-confirm" onclick="confirmQuantity()">確認</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局變量
+        const SHEET_ID = '1xja90NLxCTbQgxUSdx4nI0-BJXMLr0DHhu7Xln612vI';
+        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwFSPXkgQRDm4nUk4ctqrzKBjqeasJ0uSRpBYDNoqX4OlI_PLtiznjomf6viXkrPF4w/exec';
+        
+        let productsData = [];
+        let currentRowIndex = null;
+        let currentActionType = null;
+        let callbackCounter = 0;
+        let syncIndicatorTimeout = null;
+        let localUpdates = new Map(); // 追蹤本地更新
+        let lastUpdateTime = new Map(); // 追蹤最後更新時間
+        let isUpdating = false; // 防止同時更新
+        
+        // 工具函數
+        function getProductKey(productName, specName) {
+            return `${productName}|||${specName}`;
+        }
+
+        function markLocalUpdate(productName, specName, updateType) {
+            const key = getProductKey(productName, specName);
+            const now = Date.now();
+            localUpdates.set(key, { type: updateType, timestamp: now });
+            lastUpdateTime.set(key, now);
+        }
+
+        function isRecentLocalUpdate(productName, specName, timeWindow = 10000) {
+            const key = getProductKey(productName, specName);
+            const updateTime = lastUpdateTime.get(key);
+            return updateTime && (Date.now() - updateTime) < timeWindow;
+        }
+
+        function hasConflict(localRow, remoteRow) {
+            // 檢查H, I, J欄位是否有衝突
+            return (localRow[7] !== remoteRow[7]) || 
+                   (localRow[8] !== remoteRow[8]) || 
+                   (localRow[9] !== remoteRow[9]);
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProducts();
+            setInterval(refreshProducts, 3000); // 每3秒自動更新
+        });
+
+        // JSONP請求函數
+        function jsonpRequest(url, params = {}) {
+            return new Promise((resolve, reject) => {
+                const callbackName = `jsonp_callback_${++callbackCounter}`;
+                const script = document.createElement('script');
+                
+                // 設置全局回調函數
+                window[callbackName] = function(data) {
+                    resolve(data);
+                    document.head.removeChild(script);
+                    delete window[callbackName];
+                };
+                
+                // 構建URL
+                const urlParams = new URLSearchParams({
+                    ...params,
+                    callback: callbackName
+                });
+                
+                script.src = `${url}?${urlParams.toString()}`;
+                script.onerror = () => {
+                    reject(new Error('JSONP request failed'));
+                    document.head.removeChild(script);
+                    delete window[callbackName];
+                };
+                
+                document.head.appendChild(script);
+            });
+        }
+
+        // 加載商品資料
+        async function loadProducts() {
+            try {
+                updateSyncStatus('loading', '正在同步資料...');
+                
+                const result = await jsonpRequest(GAS_WEB_APP_URL, {
+                    action: 'read',
+                    sheetId: SHEET_ID
+                });
+                
+                if (result.success && result.data && result.data.length > 1) {
+                    productsData = result.data.slice(1); // 跳過標題行
+                    renderProducts();
+                    updateSyncStatus('success', '資料同步完成');
+                } else {
+                    throw new Error(result.error || '無法取得資料');
+                }
+            } catch (error) {
+                console.error('載入失敗:', error);
+                updateSyncStatus('error', '同步失敗，請重新整理');
+            }
+        }
+
+        // 按原始順序處理資料，只有相同商品名稱+相同選項名稱才合併
+        function processProductsData(data) {
+            const result = [];
+            const processed = new Set();
+            
+            data.forEach((row, originalIndex) => {
+                if (processed.has(originalIndex)) return;
+                
+                const productName = row[1] || '';
+                const specName = row[3] || '';
+                const key = `${productName}|||${specName}`;
+                
+                // 找出所有相同商品名稱+選項名稱的項目
+                const sameItems = [];
+                data.forEach((checkRow, checkIndex) => {
+                    if (processed.has(checkIndex)) return;
+                    const checkProductName = checkRow[1] || '';
+                    const checkSpecName = checkRow[3] || '';
+                    const checkKey = `${checkProductName}|||${checkSpecName}`;
+                    
+                    if (checkKey === key) {
+                        sameItems.push({
+                            originalIndex: checkIndex,
+                            row: checkRow
+                        });
+                        processed.add(checkIndex);
+                    }
+                });
+                
+                if (sameItems.length > 0) {
+                    // 使用第一筆資料作為代表
+                    const firstItem = sameItems[0];
+                    result.push({
+                        originalIndex: firstItem.originalIndex,
+                        mainSku: firstItem.row[0] || '',
+                        productName: productName,
+                        optionSku: firstItem.row[2] || '',
+                        specName: specName,
+                        location: firstItem.row[4] || '',
+                        quantity: firstItem.row[5] || '',
+                        note: firstItem.row[6] || '',
+                        status: firstItem.row[7] || '',
+                        shortageQty: firstItem.row[8] || '',
+                        stockQty: firstItem.row[9] || '',
+                        duplicates: sameItems.slice(1) // 其他重複項目
+                    });
+                }
+            });
+            
+            return result;
+        }
+
+        // 渲染商品列表
+        function renderProducts() {
+            const productList = document.getElementById('productList');
+            const loadingDiv = document.getElementById('loadingDiv');
+            
+            if (productsData.length === 0) {
+                loadingDiv.textContent = '暫無商品資料';
+                return;
+            }
+
+            loadingDiv.style.display = 'none';
+            productList.style.display = 'block';
+            
+            const processedProducts = processProductsData(productsData);
+            
+            productList.innerHTML = processedProducts.map(product => {
+                const { originalIndex, mainSku, productName, optionSku, specName, location, quantity, note, status, shortageQty, stockQty, duplicates } = product;
+                
+                let cardClass = '';
+                let statusText = '';
+                let buttonHtml = '';
+                
+                if (status === '已檢貨') {
+                    cardClass = 'checked';
+                    statusText = '✓ 已檢貨';
+                    buttonHtml = `<button class="action-btn btn-restore" onclick="restoreStatus(${originalIndex})">恢復</button>`;
+                } else if (status === '缺量') {
+                    cardClass = 'shortage';
+                    statusText = `⚠️ 缺量${shortageQty ? ` (${shortageQty})` : ''}`;
+                    buttonHtml = `<button class="action-btn btn-restore" onclick="restoreStatus(${originalIndex})">恢復</button>`;
+                } else if (status === '要補貨') {
+                    cardClass = 'restock';
+                    statusText = `🔄 要補貨${stockQty ? ` (庫存:${stockQty})` : ''}`;
+                    buttonHtml = `<button class="action-btn btn-restore" onclick="restoreStatus(${originalIndex})">恢復</button>`;
+                } else {
+                    buttonHtml = `
+                        <button class="action-btn btn-checked" onclick="setStatus(${originalIndex}, '已檢貨')">已檢貨</button>
+                        <button class="action-btn btn-shortage" onclick="showQuantityModal(${originalIndex}, 'shortage')">缺量</button>
+                        <button class="action-btn btn-restock" onclick="showQuantityModal(${originalIndex}, 'restock')">要補貨</button>
+                    `;
+                }
+                
+                return `
+                    <div class="variant-card ${cardClass}" id="card-${originalIndex}">
+                        <div class="variant-header">
+                            <div class="location-primary">📍 ${location || '未設定儲位'}</div>
+                            <div class="spec-name">${productName}</div>
+                            <div class="option-sku-quantity">
+                                <span class="option-sku">${specName}</span>
+                                <span class="quantity-display">📦 ${quantity}</span>
+                            </div>
+                            ${duplicates && duplicates.length > 0 ? `
+                            <div style="font-size: 12px; color: #666; margin-top: 8px;">
+                                合併 ${duplicates.length + 1} 筆相同項目
+                            </div>` : ''}
+                        </div>
+                        ${note ? `
+                        <div class="variant-details">
+                            <div class="detail-row">
+                                <span class="detail-icon">📝</span>
+                                <span class="detail-text">${note}</span>
+                            </div>
+                        </div>` : ''}
+                        ${statusText ? `<div class="status-display">${statusText}</div>` : ''}
+                        <div class="action-buttons">
+                            ${buttonHtml}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 設定狀態 (先更新UI再上傳)
+        async function setStatus(rowIndex, status) {
+            const product = productsData[rowIndex];
+            const productName = product[1]; // B欄位
+            const specName = product[3]; // D欄位
+            
+            // 1. 立即更新本地資料和UI
+            productsData[rowIndex][7] = status;
+            renderProducts();
+            
+            // 2. 在背景上傳資料
+            showSyncIndicator('uploading', '⬆️ 上傳中...');
+            try {
+                const result = await jsonpRequest(GAS_WEB_APP_URL, {
+                    action: 'update',
+                    sheetId: SHEET_ID,
+                    productName: productName,
+                    specName: specName,
+                    column: 'H',
+                    value: status
+                });
+                
+                if (result.success) {
+                    console.log(`✅ 上傳成功: ${productName} - ${specName} 狀態設為 "${status}"`);
+                    updateSyncStatus('success', '資料已同步');
+                    showSyncIndicator('success', '✅ 已同步');
+                } else {
+                    throw new Error(result.error || '上傳失敗');
+                }
+            } catch (error) {
+                console.error('⚠️ 上傳失敗:', error);
+                // 上傳失敗時恢復UI狀態
+                productsData[rowIndex][7] = '';
+                renderProducts();
+                updateSyncStatus('error', '上傳失敗，請重試');
+                showSyncIndicator('error', '❌ 上傳失敗');
+                alert('上傳失敗，請重試');
+            }
+        }
+
+        // 恢復狀態 (先更新UI再上傳)
+        async function restoreStatus(rowIndex) {
+            const product = productsData[rowIndex];
+            const productName = product[1]; // B欄位
+            const specName = product[3]; // D欄位
+            
+            // 1. 立即更新本地資料和UI
+            const oldStatus = {
+                status: productsData[rowIndex][7],
+                shortage: productsData[rowIndex][8],
+                stock: productsData[rowIndex][9]
+            };
+            
+            productsData[rowIndex][7] = '';
+            productsData[rowIndex][8] = '';
+            productsData[rowIndex][9] = '';
+            renderProducts();
+            
+            // 2. 在背景上傳資料
+            try {
+                const result = await jsonpRequest(GAS_WEB_APP_URL, {
+                    action: 'clear',
+                    sheetId: SHEET_ID,
+                    productName: productName,
+                    specName: specName
+                });
+                
+                if (result.success) {
+                    console.log(`✅ 恢復成功: ${productName} - ${specName} 狀態已恢復`);
+                    updateSyncStatus('success', '資料已同步');
+                } else {
+                    throw new Error(result.error || '恢復失敗');
+                }
+            } catch (error) {
+                console.error('⚠️ 恢復失敗:', error);
+                // 上傳失敗時恢復原狀態
+                productsData[rowIndex][7] = oldStatus.status;
+                productsData[rowIndex][8] = oldStatus.shortage;
+                productsData[rowIndex][9] = oldStatus.stock;
+                renderProducts();
+                updateSyncStatus('error', '恢復失敗，請重試');
+                alert('恢復失敗，請重試');
+            }
+        }
+
+        // 顯示數量輸入模態框
+        function showQuantityModal(rowIndex, actionType) {
+            currentRowIndex = rowIndex;
+            currentActionType = actionType;
+            
+            const modal = document.getElementById('quantityModal');
+            const title = document.getElementById('modalTitle');
+            const input = document.getElementById('quantityInput');
+            
+            title.textContent = actionType === 'shortage' ? '輸入缺量數量' : '輸入目前庫存數量';
+            input.value = '';
+            modal.style.display = 'block';
+        }
+
+        // 數字輸入功能
+        function addNumber(num) {
+            const input = document.getElementById('quantityInput');
+            input.value += num;
+        }
+
+        function deleteNumber() {
+            const input = document.getElementById('quantityInput');
+            input.value = input.value.slice(0, -1);
+        }
+
+        function clearNumber() {
+            const input = document.getElementById('quantityInput');
+            input.value = '';
+        }
+
+        // 確認數量 (先更新UI再上傳)
+        async function confirmQuantity() {
+            const quantity = document.getElementById('quantityInput').value;
+            if (!quantity) {
+                alert('請輸入數量');
+                return;
+            }
+
+            const product = productsData[currentRowIndex];
+            const productName = product[1]; // B欄位
+            const specName = product[3]; // D欄位
+            
+            // 1. 立即更新本地資料和UI
+            if (currentActionType === 'shortage') {
+                productsData[currentRowIndex][7] = '缺量';
+                productsData[currentRowIndex][8] = quantity;
+            } else if (currentActionType === 'restock') {
+                productsData[currentRowIndex][7] = '要補貨';
+                productsData[currentRowIndex][9] = quantity;
+            }
+            
+            renderProducts();
+            closeModal();
+            
+            // 2. 在背景上傳資料
+            try {
+                if (currentActionType === 'shortage') {
+                    // 先設定狀態
+                    await jsonpRequest(GAS_WEB_APP_URL, {
+                        action: 'update',
+                        sheetId: SHEET_ID,
+                        productName: productName,
+                        specName: specName,
+                        column: 'H',
+                        value: '缺量'
+                    });
+                    
+                    // 再設定數量
+                    await jsonpRequest(GAS_WEB_APP_URL, {
+                        action: 'update',
+                        sheetId: SHEET_ID,
+                        productName: productName,
+                        specName: specName,
+                        column: 'I',
+                        value: quantity
+                    });
+                    
+                    console.log(`✅ 上傳成功: ${productName} - ${specName} 缺量 ${quantity}`);
+                } else if (currentActionType === 'restock') {
+                    // 先設定狀態
+                    await jsonpRequest(GAS_WEB_APP_URL, {
+                        action: 'update',
+                        sheetId: SHEET_ID,
+                        productName: productName,
+                        specName: specName,
+                        column: 'H',
+                        value: '要補貨'
+                    });
+                    
+                    // 再設定庫存數量
+                    await jsonpRequest(GAS_WEB_APP_URL, {
+                        action: 'update',
+                        sheetId: SHEET_ID,
+                        productName: productName,
+                        specName: specName,
+                        column: 'J',
+                        value: quantity
+                    });
+                    
+                    console.log(`✅ 上傳成功: ${productName} - ${specName} 要補貨 (庫存:${quantity})`);
+                }
+                
+                updateSyncStatus('success', '資料已同步');
+            } catch (error) {
+                console.error('⚠️ 上傳失敗:', error);
+                // 上傳失敗時清除狀態
+                productsData[currentRowIndex][7] = '';
+                productsData[currentRowIndex][8] = '';
+                productsData[currentRowIndex][9] = '';
+                renderProducts();
+                updateSyncStatus('error', '上傳失敗，請重試');
+                alert('上傳失敗，請重試');
+            }
+        }
+
+        // 關閉模態框
+        function closeModal() {
+            document.getElementById('quantityModal').style.display = 'none';
+            currentRowIndex = null;
+            currentActionType = null;
+        }
+
+        // 自動刷新 (智能同步，避免衝突)
+        async function refreshProducts() {
+            if (isUpdating) return; // 如果正在更新中，跳過
+            
+            try {
+                const result = await jsonpRequest(GAS_WEB_APP_URL, {
+                    action: 'read',
+                    sheetId: SHEET_ID
+                });
+                
+                if (result.success && result.data && result.data.length > 1) {
+                    const newData = result.data.slice(1);
+                    let hasChanges = false;
+                    let conflicts = [];
+                    
+                    newData.forEach((newRow, index) => {
+                        if (index < productsData.length) {
+                            const currentRow = productsData[index];
+                            const productName = newRow[1] || '';
+                            const specName = newRow[3] || '';
+                            
+                            // 比較A-G欄位是否有變化
+                            for (let i = 0; i < 7; i++) {
+                                if (newRow[i] !== currentRow[i]) {
+                                    hasChanges = true;
+                                    currentRow[i] = newRow[i]; // 更新基本資料
+                                }
+                            }
+                            
+                            // 檢查H-J欄位更新
+                            const hasRemoteUpdate = newRow[7] !== currentRow[7] || 
+                                                  newRow[8] !== currentRow[8] || 
+                                                  newRow[9] !== currentRow[9];
+                            
+                            if (hasRemoteUpdate) {
+                                const isRecentLocal = isRecentLocalUpdate(productName, specName);
+                                
+                                if (isRecentLocal) {
+                                    // 最近有本地更新，檢查是否有衝突
+                                    if (hasConflict(currentRow, newRow)) {
+                                        conflicts.push({
+                                            productName,
+                                            specName,
+                                            local: {
+                                                status: currentRow[7],
+                                                shortage: currentRow[8],
+                                                stock: currentRow[9]
+                                            },
+                                            remote: {
+                                                status: newRow[7],
+                                                shortage: newRow[8],
+                                                stock: newRow[9]
+                                            }
+                                        });
+                                    }
+                                } else {
+                                    // 沒有最近的本地更新，安全地更新遠端狀態
+                                    currentRow[7] = newRow[7];
+                                    currentRow[8] = newRow[8];
+                                    currentRow[9] = newRow[9];
+                                    hasChanges = true;
+                                }
+                            }
+                        }
+                    });
+                    
+                    // 處理新增的商品
+                    if (newData.length > productsData.length) {
+                        for (let i = productsData.length; i < newData.length; i++) {
+                            productsData.push(newData[i]);
+                            hasChanges = true;
+                        }
+                    }
+                    
+                    // 處理衝突
+                    if (conflicts.length > 0) {
+                        handleConflicts(conflicts);
+                    }
+                    
+                    if (hasChanges) {
+                        renderProducts();
+                        updateSyncStatus('success', '資料已同步');
+                        if (conflicts.length === 0) {
+                            showSyncIndicator('success', '🔄 已更新');
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('自動刷新失敗:', error);
+            }
+        }
+
+        // 更新同步狀態
+        function updateSyncStatus(type, message) {
+            const syncStatus = document.getElementById('syncStatus');
+            const indicator = syncStatus.querySelector('.status-indicator');
+            
+            indicator.className = 'status-indicator';
+            
+            switch(type) {
+                case 'loading':
+                    indicator.classList.add('status-pending');
+                    break;
+                case 'success':
+                    indicator.classList.add('status-checked');
+                    break;
+                case 'error':
+                    indicator.classList.add('status-restock');
+                    break;
+            }
+            
+            syncStatus.innerHTML = `<span class="status-indicator ${indicator.className.split(' ')[1]}"></span>${message}`;
+        }
+
+        // 顯示同步指示器
+        function showSyncIndicator(type, message) {
+            const indicator = document.getElementById('syncIndicator');
+            
+            // 清除之前的timeout
+            if (syncIndicatorTimeout) {
+                clearTimeout(syncIndicatorTimeout);
+            }
+            
+            // 設置樣式和內容
+            indicator.className = `sync-indicator ${type}`;
+            indicator.textContent = message;
+            
+            // 自動隱藏（除了uploading狀態）
+            if (type !== 'uploading') {
+                syncIndicatorTimeout = setTimeout(() => {
+                    indicator.classList.add('hidden');
+                }, 2000);
+            }
+        }
+    </script>
+</body>
+</html>
