@@ -275,6 +275,16 @@
             transform: scale(0.95);
         }
 
+        .action-btn.active {
+            opacity: 1;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+            transform: translateY(-1px);
+        }
+
+        .action-btn:not(.active) {
+            opacity: 0.7;
+        }
+
         .modal {
             display: none;
             position: fixed;
@@ -290,14 +300,17 @@
         .modal-content {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
-            margin: 50% auto;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             padding: 30px;
             border-radius: 20px;
             width: 90%;
-            max-width: 350px;
-            transform: translateY(-50%);
+            max-width: 400px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.2);
+            z-index: 1001;
         }
 
         .modal-title {
@@ -353,6 +366,38 @@
 
         .number-btn:active {
             transform: scale(0.95);
+        }
+
+        .unit-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .unit-btn {
+            padding: 12px 16px;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.9);
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            color: #4a5568;
+        }
+
+        .unit-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .unit-btn:hover:not(.active) {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: rgba(102, 126, 234, 0.5);
         }
 
         .modal-actions {
@@ -463,6 +508,151 @@
             opacity: 0;
             transform: translateY(-10px);
         }
+
+        /* 搜尋和篩選區域 */
+        .search-filter-container {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            margin-bottom: 25px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 15px 20px;
+            font-size: 16px;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.2);
+        }
+
+        .filter-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 12px;
+        }
+
+        .filter-btn {
+            padding: 12px 16px;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.9);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            color: #4a5568;
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .filter-btn:hover:not(.active) {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: rgba(102, 126, 234, 0.5);
+        }
+
+        .filter-btn:active {
+            transform: scale(0.95);
+        }
+
+        .filter-btn {
+            position: relative;
+        }
+
+        .count-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #f56565;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(245, 101, 101, 0.4);
+        }
+
+        /* 右下角浮動按鍵區域 */
+        .floating-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 200;
+        }
+
+        .floating-btn {
+            width: 60px;
+            height: 60px;
+            border: none;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            font-size: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            position: relative;
+        }
+
+        .floating-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+        }
+
+        .floating-btn:active {
+            transform: scale(0.95);
+        }
+
+        .floating-btn.pending-filter {
+            background: linear-gradient(135deg, #ed8936, #dd6b20);
+        }
+
+        .floating-btn.pending-filter.active {
+            background: linear-gradient(135deg, #f56565, #e53e3e);
+            box-shadow: 0 8px 25px rgba(245, 101, 101, 0.4);
+        }
+
+        .floating-btn.nav-up {
+            background: linear-gradient(135deg, #38a169, #2f855a);
+        }
+
+        .floating-btn.nav-down {
+            background: linear-gradient(135deg, #38a169, #2f855a);
+        }
     </style>
 </head>
 <body>
@@ -481,12 +671,36 @@
         </div>
     </div>
 
+    <!-- 搜尋和篩選區域 -->
+    <div class="search-filter-container">
+        <input type="text" class="search-box" id="searchBox" placeholder="🔍 搜尋商品名稱、規格、SKU..." oninput="filterProducts()">
+        <div class="filter-buttons">
+            <button class="filter-btn active" id="filterAll" onclick="setFilter('all')">📦 全部</button>
+            <button class="filter-btn" id="filterShortage" onclick="setFilter('shortage')">⚠️ 缺量</button>
+            <button class="filter-btn" id="filterRestock" onclick="setFilter('restock')">🔄 要補貨</button>
+            <button class="filter-btn" id="filterPending" onclick="setFilter('pending')">
+                📋 未處理
+                <span class="count-badge" id="pendingCountBadge" style="display: none;">0</span>
+            </button>
+        </div>
+    </div>
+
     <div id="loadingDiv" class="loading">
         正在加載商品資料...
     </div>
 
     <div id="productList" class="product-list" style="display: none;">
         <!-- 商品卡片將動態生成 -->
+    </div>
+
+    <!-- 右下角浮動控制按鍵 -->
+    <div class="floating-controls">
+        <button class="floating-btn nav-up" onclick="navigateToPending('up')" title="上一個未處理項目">
+            ↑
+        </button>
+        <button class="floating-btn nav-down" onclick="navigateToPending('down')" title="下一個未處理項目">
+            ↓
+        </button>
     </div>
 
     <!-- 數量輸入模態框 -->
@@ -508,6 +722,10 @@
                 <button class="number-btn" onclick="addNumber('0')">0</button>
                 <button class="number-btn" onclick="deleteNumber()">刪除</button>
             </div>
+            <div class="unit-buttons">
+                <button class="unit-btn active" id="unitPcs" onclick="selectUnit('入')">📦 入</button>
+                <button class="unit-btn" id="unitBox" onclick="selectUnit('箱')">📋 箱</button>
+            </div>
             <div class="modal-actions">
                 <button class="modal-btn btn-cancel" onclick="closeModal()">取消</button>
                 <button class="modal-btn btn-confirm" onclick="confirmQuantity()">確認</button>
@@ -528,6 +746,9 @@
         let localUpdates = new Map(); // 追蹤本地更新
         let lastUpdateTime = new Map(); // 追蹤最後更新時間
         let isUpdating = false; // 防止同時更新
+        let currentFilter = 'all'; // 當前篩選狀態
+        let searchQuery = ''; // 當前搜尋查詢
+        let selectedUnit = '入'; // 當前選擇的單位
         
         // 工具函數
         function getProductKey(productName, specName) {
@@ -744,22 +965,20 @@
                             if (status === '已檢貨') {
                                 cardClass = 'checked';
                                 statusText = '✓ 已檢貨';
-                                buttonHtml = `<button class="action-btn btn-restore" onclick="restoreStatus(${originalIndex})">恢復</button>`;
                             } else if (status === '缺量') {
                                 cardClass = 'shortage';
                                 statusText = `⚠️ 缺量${shortageQty ? ` (${shortageQty})` : ''}`;
-                                buttonHtml = `<button class="action-btn btn-restore" onclick="restoreStatus(${originalIndex})">恢復</button>`;
                             } else if (status === '要補貨') {
                                 cardClass = 'restock';
                                 statusText = `🔄 要補貨${stockQty ? ` (庫存:${stockQty})` : ''}`;
-                                buttonHtml = `<button class="action-btn btn-restore" onclick="restoreStatus(${originalIndex})">恢復</button>`;
-                            } else {
-                                buttonHtml = `
-                                    <button class="action-btn btn-checked" onclick="setStatus(${originalIndex}, '已檢貨')">已檢貨</button>
-                                    <button class="action-btn btn-shortage" onclick="showQuantityModal(${originalIndex}, 'shortage')">缺量</button>
-                                    <button class="action-btn btn-restock" onclick="showQuantityModal(${originalIndex}, 'restock')">要補貨</button>
-                                `;
                             }
+                            
+                            // 永遠顯示所有操作按鍵，但根據當前狀態調整樣式
+                            buttonHtml = `
+                                <button class="action-btn btn-checked ${status === '已檢貨' ? 'active' : ''}" onclick="setStatus(${originalIndex}, '已檢貨')">已檢貨</button>
+                                <button class="action-btn btn-shortage ${status === '缺量' ? 'active' : ''}" onclick="showQuantityModal(${originalIndex}, 'shortage')">缺量</button>
+                                <button class="action-btn btn-restock ${status === '要補貨' ? 'active' : ''}" onclick="showQuantityModal(${originalIndex}, 'restock')">要補貨</button>
+                            `;
                             
                                         return `
                             <div class="variant-card ${cardClass}" id="card-${originalIndex}">
@@ -792,6 +1011,9 @@
                     ${isGrouped ? `</div>` : ''}
                 `;
             }).join('');
+            
+            // 更新未處理項目計數
+            setTimeout(updatePendingCount, 100);
         }
 
         // 設定狀態 (先更新UI再上傳)
@@ -817,16 +1039,19 @@
             // 2. 標記本地更新
             markLocalUpdate(productName, specName, 'status');
             
-            // 3. 在背景上傳資料
+            // 3. 在背景上傳資料 (批次處理)
             showSyncIndicator('uploading', '⬆️ 上傳中...');
             try {
                 const result = await jsonpRequest(GAS_WEB_APP_URL, {
-                    action: 'update',
+                    action: 'batchUpdate',
                     sheetId: SHEET_ID,
                     productName: productName,
                     specName: specName,
-                    column: 'H',
-                    value: status
+                    updates: {
+                        H: status,
+                        I: '',
+                        J: ''
+                    }
                 });
                 
                 if (result.success) {
@@ -884,13 +1109,18 @@
             // 2. 標記本地更新
             markLocalUpdate(productName, specName, 'restore');
             
-            // 3. 在背景上傳資料
+            // 3. 在背景上傳資料 (批次清除HIJ)
             try {
                 const result = await jsonpRequest(GAS_WEB_APP_URL, {
-                    action: 'clear',
+                    action: 'batchUpdate',
                     sheetId: SHEET_ID,
                     productName: productName,
-                    specName: specName
+                    specName: specName,
+                    updates: {
+                        H: '',
+                        I: '',
+                        J: ''
+                    }
                 });
                 
                 if (result.success) {
@@ -923,6 +1153,7 @@
         function showQuantityModal(rowIndex, actionType) {
             currentRowIndex = rowIndex;
             currentActionType = actionType;
+            selectedUnit = '入'; // 重設為預設單位
             
             const modal = document.getElementById('quantityModal');
             const title = document.getElementById('modalTitle');
@@ -930,6 +1161,11 @@
             
             title.textContent = actionType === 'shortage' ? '輸入缺量數量' : '輸入目前庫存數量';
             input.value = '';
+            
+            // 重設單位按鈕狀態
+            document.getElementById('unitPcs').classList.add('active');
+            document.getElementById('unitBox').classList.remove('active');
+            
             modal.style.display = 'block';
         }
 
@@ -949,6 +1185,20 @@
             input.value = '';
         }
 
+        // 選擇單位
+        function selectUnit(unit) {
+            selectedUnit = unit;
+            
+            // 更新按鈕狀態
+            document.querySelectorAll('.unit-btn').forEach(btn => btn.classList.remove('active'));
+            
+            if (unit === '入') {
+                document.getElementById('unitPcs').classList.add('active');
+            } else {
+                document.getElementById('unitBox').classList.add('active');
+            }
+        }
+
         // 確認數量 (先更新UI再上傳)
         async function confirmQuantity() {
             const quantity = document.getElementById('quantityInput').value;
@@ -961,29 +1211,30 @@
             const productName = product[1] || ''; // B欄位
             const specName = product[3] || ''; // D欄位
             
-
+            // 組合數量和單位
+            const quantityWithUnit = `${quantity}${selectedUnit}`;
             
             // 1. 立即更新本地資料和UI (包括所有重複項目)
             if (currentActionType === 'shortage') {
                 productsData[currentRowIndex][7] = '缺量';
-                productsData[currentRowIndex][8] = quantity;
+                productsData[currentRowIndex][8] = quantityWithUnit;
                 
                 // 更新所有相同商品名稱+規格名稱的重複項目
                 productsData.forEach((row, index) => {
                     if (index !== currentRowIndex && row[1] === productName && row[3] === specName) {
                         row[7] = '缺量';
-                        row[8] = quantity;
+                        row[8] = quantityWithUnit;
                     }
                 });
             } else if (currentActionType === 'restock') {
                 productsData[currentRowIndex][7] = '要補貨';
-                productsData[currentRowIndex][9] = quantity;
+                productsData[currentRowIndex][9] = quantityWithUnit;
                 
                 // 更新所有相同商品名稱+規格名稱的重複項目
                 productsData.forEach((row, index) => {
                     if (index !== currentRowIndex && row[1] === productName && row[3] === specName) {
                         row[7] = '要補貨';
-                        row[9] = quantity;
+                        row[9] = quantityWithUnit;
                     }
                 });
             }
@@ -999,72 +1250,38 @@
             // 2. 標記本地更新
             markLocalUpdate(productName, specName, actionTypeToUpload);
             
-            // 3. 在背景上傳資料 (串行上傳確保穩定性)
+            // 3. 在背景上傳資料 (批次處理HIJ欄位)
             showSyncIndicator('uploading', '⬆️ 上傳中...');
             try {
+                let updates = {};
+                
                 if (actionTypeToUpload === 'shortage') {
-                    // 先上傳狀態
-                    const statusResult = await jsonpRequest(GAS_WEB_APP_URL, {
-                        action: 'update',
-                        sheetId: SHEET_ID,
-                        productName: productName,
-                        specName: specName,
-                        column: 'H',
-                        value: '缺量'
-                    });
-                    
-                    if (!statusResult.success) {
-                        throw new Error(`狀態上傳失敗: ${statusResult.error || '未知錯誤'}`);
-                    }
-                    
-                    // 再上傳數量
-                    const quantityResult = await jsonpRequest(GAS_WEB_APP_URL, {
-                        action: 'update',
-                        sheetId: SHEET_ID,
-                        productName: productName,
-                        specName: specName,
-                        column: 'I',
-                        value: quantity
-                    });
-                    
-                    if (!quantityResult.success) {
-                        throw new Error(`數量上傳失敗: ${quantityResult.error || '未知錯誤'}`);
-                    }
-                    
-                    updateSyncStatus('success', '資料已同步');
-                    showSyncIndicator('success', '✅ 已同步');
-                    
+                    updates = {
+                        H: '缺量',
+                        I: quantityWithUnit,
+                        J: ''
+                    };
                 } else if (actionTypeToUpload === 'restock') {
-                    // 先上傳狀態
-                    const statusResult = await jsonpRequest(GAS_WEB_APP_URL, {
-                        action: 'update',
-                        sheetId: SHEET_ID,
-                        productName: productName,
-                        specName: specName,
-                        column: 'H',
-                        value: '要補貨'
-                    });
-                    
-                    if (!statusResult.success) {
-                        throw new Error(`狀態上傳失敗: ${statusResult.error || '未知錯誤'}`);
-                    }
-                    
-                    // 再上傳庫存數量
-                    const stockResult = await jsonpRequest(GAS_WEB_APP_URL, {
-                        action: 'update',
-                        sheetId: SHEET_ID,
-                        productName: productName,
-                        specName: specName,
-                        column: 'J',
-                        value: quantity
-                    });
-                    
-                    if (!stockResult.success) {
-                        throw new Error(`庫存數量上傳失敗: ${stockResult.error || '未知錯誤'}`);
-                    }
-                    
+                    updates = {
+                        H: '要補貨',
+                        I: '',
+                        J: quantityWithUnit
+                    };
+                }
+                
+                const result = await jsonpRequest(GAS_WEB_APP_URL, {
+                    action: 'batchUpdate',
+                    sheetId: SHEET_ID,
+                    productName: productName,
+                    specName: specName,
+                    updates: updates
+                });
+                
+                if (result.success) {
                     updateSyncStatus('success', '資料已同步');
                     showSyncIndicator('success', '✅ 已同步');
+                } else {
+                    throw new Error(result.error || '上傳失敗');
                 }
             } catch (error) {
                 // 上傳失敗時清除狀態 (包括所有重複項目)
@@ -1093,6 +1310,7 @@
             document.getElementById('quantityModal').style.display = 'none';
             currentRowIndex = null;
             currentActionType = null;
+            selectedUnit = '入'; // 重設單位
         }
 
         // 自動刷新 (智能同步，避免衝突)
@@ -1200,6 +1418,184 @@
                 syncIndicatorTimeout = setTimeout(() => {
                     indicator.classList.add('hidden');
                 }, 2000);
+            }
+        }
+
+        // 搜尋功能
+        function filterProducts() {
+            const searchBox = document.getElementById('searchBox');
+            searchQuery = searchBox.value.toLowerCase().trim();
+            applyFilters();
+        }
+
+        // 設定篩選狀態
+        function setFilter(filterType) {
+            currentFilter = filterType;
+            
+            // 更新按鈕狀態
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            
+            // 只在對應的按鈕存在時才設定 active 狀態
+            const targetBtn = document.getElementById(`filter${filterType.charAt(0).toUpperCase() + filterType.slice(1)}`);
+            if (targetBtn) {
+                targetBtn.classList.add('active');
+            }
+            
+            applyFilters();
+        }
+
+        // 應用篩選和搜尋
+        function applyFilters() {
+            const productCards = document.querySelectorAll('.variant-card');
+            
+            productCards.forEach(card => {
+                const cardId = card.id;
+                const rowIndex = parseInt(cardId.replace('card-', ''));
+                const product = productsData[rowIndex];
+                
+                if (!product) return;
+                
+                const productName = (product[1] || '').toLowerCase();
+                const specName = (product[3] || '').toLowerCase();
+                const optionSku = (product[2] || '').toLowerCase();
+                const mainSku = (product[0] || '').toLowerCase();
+                const status = product[7] || '';
+                
+                // 搜尋匹配
+                const searchMatch = !searchQuery || 
+                    productName.includes(searchQuery) ||
+                    specName.includes(searchQuery) ||
+                    optionSku.includes(searchQuery) ||
+                    mainSku.includes(searchQuery);
+                
+                // 狀態篩選
+                let statusMatch = true;
+                if (currentFilter === 'shortage') {
+                    statusMatch = status === '缺量';
+                } else if (currentFilter === 'restock') {
+                    statusMatch = status === '要補貨';
+                } else if (currentFilter === 'pending') {
+                    statusMatch = !status || status === '';
+                }
+                
+                // 顯示或隱藏卡片
+                if (searchMatch && statusMatch) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            
+            // 處理商品群組的顯示/隱藏
+            const productGroups = document.querySelectorAll('.product-group');
+            productGroups.forEach(group => {
+                const visibleCards = group.querySelectorAll('.variant-card[style*="display: block"], .variant-card:not([style*="display: none"])');
+                if (visibleCards.length === 0) {
+                    group.style.display = 'none';
+                } else {
+                    group.style.display = 'block';
+                }
+            });
+            
+            // 更新未處理項目計數
+            updatePendingCount();
+        }
+
+
+        // 導航到未處理項目 - 以儲位為主
+        function navigateToPending(direction) {
+            const visibleCards = Array.from(document.querySelectorAll('.variant-card')).filter(card => {
+                return card.style.display !== 'none';
+            });
+            
+            // 取得所有未處理項目的儲位
+            const pendingLocations = new Map();
+            visibleCards.forEach(card => {
+                const cardId = card.id;
+                const rowIndex = parseInt(cardId.replace('card-', ''));
+                const product = productsData[rowIndex];
+                
+                if (product && (!product[7] || product[7] === '')) {
+                    const location = product[4] || '未設定儲位';
+                    if (!pendingLocations.has(location)) {
+                        pendingLocations.set(location, card);
+                    }
+                }
+            });
+            
+            const pendingLocationCards = Array.from(pendingLocations.values());
+            
+            if (pendingLocationCards.length === 0) {
+                alert('沒有找到未處理的儲位');
+                return;
+            }
+            
+            // 取得目前視窗位置
+            const currentScrollY = window.scrollY;
+            const windowHeight = window.innerHeight;
+            const currentViewCenter = currentScrollY + windowHeight / 2;
+            
+            let targetCard = null;
+            
+            if (direction === 'up') {
+                // 向上尋找：找到當前視窗上方最近的未處理儲位
+                const cardsAbove = pendingLocationCards.filter(card => {
+                    const rect = card.getBoundingClientRect();
+                    const cardTop = rect.top + window.scrollY;
+                    return cardTop < currentViewCenter;
+                }).reverse(); // 反轉以便找到最接近的
+                
+                targetCard = cardsAbove[0] || pendingLocationCards[pendingLocationCards.length - 1]; // 如果沒有上方的，跳到最後一個儲位
+            } else {
+                // 向下尋找：找到當前視窗下方最近的未處理儲位
+                const cardsBelow = pendingLocationCards.filter(card => {
+                    const rect = card.getBoundingClientRect();
+                    const cardTop = rect.top + window.scrollY;
+                    return cardTop > currentViewCenter;
+                });
+                
+                targetCard = cardsBelow[0] || pendingLocationCards[0]; // 如果沒有下方的，跳到第一個儲位
+            }
+            
+            if (targetCard) {
+                // 平滑滾動到目標卡片
+                const rect = targetCard.getBoundingClientRect();
+                const cardTop = rect.top + window.scrollY;
+                const offset = 100; // 距離頂部的偏移量
+                
+                window.scrollTo({
+                    top: cardTop - offset,
+                    behavior: 'smooth'
+                });
+                
+                // 添加高亮效果
+                targetCard.style.transform = 'scale(1.02)';
+                targetCard.style.boxShadow = '0 10px 40px rgba(102, 126, 234, 0.4)';
+                
+                setTimeout(() => {
+                    targetCard.style.transform = '';
+                    targetCard.style.boxShadow = '';
+                }, 1000);
+            }
+        }
+
+        // 更新未處理項目計數
+        function updatePendingCount() {
+            const pendingCards = Array.from(document.querySelectorAll('.variant-card')).filter(card => {
+                const cardId = card.id;
+                const rowIndex = parseInt(cardId.replace('card-', ''));
+                const product = productsData[rowIndex];
+                return product && (!product[7] || product[7] === '');
+            });
+            
+            const countBadge = document.getElementById('pendingCountBadge');
+            const count = pendingCards.length;
+            
+            if (count > 0) {
+                countBadge.textContent = count;
+                countBadge.style.display = 'flex';
+            } else {
+                countBadge.style.display = 'none';
             }
         }
 
