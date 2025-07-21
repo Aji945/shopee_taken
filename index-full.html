@@ -1074,7 +1074,9 @@
                 }
             });
             
+            // 重新渲染並保持當前篩選狀態
             renderProducts();
+            applyFilters();
             
             // 2. 標記本地更新
             markLocalUpdate(productName, specName, 'status');
@@ -1110,6 +1112,7 @@
                     }
                 });
                 renderProducts();
+                applyFilters();
                 updateSyncStatus('error', '上傳失敗，請重試');
                 showSyncIndicator('error', '❌ 上傳失敗');
                 alert('上傳失敗，請重試');
@@ -1144,7 +1147,9 @@
                 }
             });
             
+            // 重新渲染並保持當前篩選狀態
             renderProducts();
+            applyFilters();
             
             // 2. 標記本地更新
             markLocalUpdate(productName, specName, 'restore');
@@ -1184,6 +1189,7 @@
                 });
                 
                 renderProducts();
+                applyFilters();
                 updateSyncStatus('error', '恢復失敗，請重試');
                 alert('恢復失敗，請重試');
             }
@@ -1279,7 +1285,9 @@
                 });
             }
             
+            // 重新渲染並保持當前篩選狀態
             renderProducts();
+            applyFilters();
             
             // 保存 actionType 和 rowIndex，因為 closeModal() 會重置它們
             const actionTypeToUpload = currentActionType;
@@ -1339,6 +1347,7 @@
                 });
                 
                 renderProducts();
+                applyFilters();
                 updateSyncStatus('error', '上傳失敗，請重試');
                 showSyncIndicator('error', '❌ 上傳失敗');
                 alert('上傳失敗，請重試');
