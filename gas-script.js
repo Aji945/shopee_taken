@@ -109,7 +109,11 @@ function doGet(e) {
       // 根據B欄位(商品名稱)和D欄位(規格名稱)找到對應的列
       let targetRow = -1;
       for (let i = 1; i < values.length; i++) {
-        if (values[i][1] === productName && values[i][3] === specName) {
+        const rowProductName = values[i][1] || '';
+        const rowSpecName = values[i][3] || '';
+        
+        // 使用trim()去除前後空格，並進行嚴格比較
+        if (rowProductName.trim() === productName.trim() && rowSpecName.trim() === specName.trim()) {
           targetRow = i + 1; // +1因為陣列從0開始，Excel從1開始
           break;
         }
@@ -158,7 +162,11 @@ function doGet(e) {
       // 根據B欄位(商品名稱)和D欄位(規格名稱)找到對應的列
       let targetRow = -1;
       for (let i = 1; i < values.length; i++) {
-        if (values[i][1] === productName && values[i][3] === specName) {
+        const rowProductName = values[i][1] || '';
+        const rowSpecName = values[i][3] || '';
+        
+        // 使用trim()去除前後空格，並進行嚴格比較
+        if (rowProductName.trim() === productName.trim() && rowSpecName.trim() === specName.trim()) {
           targetRow = i + 1; // +1因為陣列從0開始，Excel從1開始
           break;
         }

@@ -457,7 +457,7 @@
 </head>
 <body>
     <div class="success-banner">
-        ⚡ 完整版：即時UI更新 + 3秒自動同步
+        ⚡ 完整版：即時UI更新 + 1.5秒自動同步 + 穩定上傳
     </div>
 
     <!-- 同步狀態指示器 -->
@@ -537,17 +537,12 @@
             return updateTime && (Date.now() - updateTime) < timeWindow;
         }
 
-        function hasConflict(localRow, remoteRow) {
-            // 檢查H, I, J欄位是否有衝突
-            return (localRow[7] !== remoteRow[7]) || 
-                   (localRow[8] !== remoteRow[8]) || 
-                   (localRow[9] !== remoteRow[9]);
-        }
+
 
         // 初始化
         document.addEventListener('DOMContentLoaded', function() {
             loadProducts();
-            setInterval(refreshProducts, 3000); // 每3秒自動更新
+            setInterval(refreshProducts, 30000); // 每1.5秒自動更新，提升同步速度
         });
 
         // JSONP請求函數
@@ -570,8 +565,23 @@
                 });
                 
                 script.src = `${url}?${urlParams.toString()}`;
+                
                 script.onerror = () => {
                     reject(new Error('JSONP request failed'));
+                    document.head.removeChild(script);
+                    delete window[callbackName];
+                };
+                
+                // 添加超時處理
+                const timeout = setTimeout(() => {
+                    reject(new Error('JSONP request timeout'));
+                    document.head.removeChild(script);
+                    delete window[callbackName];
+                }, 10000); // 10秒超時
+                
+                window[callbackName] = function(data) {
+                    clearTimeout(timeout);
+                    resolve(data);
                     document.head.removeChild(script);
                     delete window[callbackName];
                 };
@@ -598,7 +608,6 @@
                     throw new Error(result.error || '無法取得資料');
                 }
             } catch (error) {
-                console.error('載入失敗:', error);
                 updateSyncStatus('error', '同步失敗，請重新整理');
             }
         }
@@ -730,14 +739,27 @@
         // 設定狀態 (先更新UI再上傳)
         async function setStatus(rowIndex, status) {
             const product = productsData[rowIndex];
-            const productName = product[1]; // B欄位
-            const specName = product[3]; // D欄位
+            const productName = product[1] || ''; // B欄位
+            const specName = product[3] || ''; // D欄位
             
-            // 1. 立即更新本地資料和UI
+
+            
+            // 1. 立即更新本地資料和UI (包括所有重複項目)
             productsData[rowIndex][7] = status;
+            
+            // 更新所有相同商品名稱+規格名稱的重複項目
+            productsData.forEach((row, index) => {
+                if (index !== rowIndex && row[1] === productName && row[3] === specName) {
+                    row[7] = status;
+                }
+            });
+            
             renderProducts();
             
-            // 2. 在背景上傳資料
+            // 2. 標記本地更新
+            markLocalUpdate(productName, specName, 'status');
+            
+            // 3. 在背景上傳資料
             showSyncIndicator('uploading', '⬆️ 上傳中...');
             try {
                 const result = await jsonpRequest(GAS_WEB_APP_URL, {
@@ -750,16 +772,20 @@
                 });
                 
                 if (result.success) {
-                    console.log(`✅ 上傳成功: ${productName} - ${specName} 狀態設為 "${status}"`);
                     updateSyncStatus('success', '資料已同步');
                     showSyncIndicator('success', '✅ 已同步');
                 } else {
                     throw new Error(result.error || '上傳失敗');
                 }
             } catch (error) {
-                console.error('⚠️ 上傳失敗:', error);
                 // 上傳失敗時恢復UI狀態
                 productsData[rowIndex][7] = '';
+                // 恢復所有重複項目的狀態
+                productsData.forEach((row, index) => {
+                    if (index !== rowIndex && row[1] === productName && row[3] === specName) {
+                        row[7] = '';
+                    }
+                });
                 renderProducts();
                 updateSyncStatus('error', '上傳失敗，請重試');
                 showSyncIndicator('error', '❌ 上傳失敗');
@@ -770,10 +796,12 @@
         // 恢復狀態 (先更新UI再上傳)
         async function restoreStatus(rowIndex) {
             const product = productsData[rowIndex];
-            const productName = product[1]; // B欄位
-            const specName = product[3]; // D欄位
+            const productName = product[1] || ''; // B欄位
+            const specName = product[3] || ''; // D欄位
             
-            // 1. 立即更新本地資料和UI
+
+            
+            // 1. 立即更新本地資料和UI (包括所有重複項目)
             const oldStatus = {
                 status: productsData[rowIndex][7],
                 shortage: productsData[rowIndex][8],
@@ -783,9 +811,22 @@
             productsData[rowIndex][7] = '';
             productsData[rowIndex][8] = '';
             productsData[rowIndex][9] = '';
+            
+            // 清除所有相同商品名稱+規格名稱的重複項目
+            productsData.forEach((row, index) => {
+                if (index !== rowIndex && row[1] === productName && row[3] === specName) {
+                    row[7] = '';
+                    row[8] = '';
+                    row[9] = '';
+                }
+            });
+            
             renderProducts();
             
-            // 2. 在背景上傳資料
+            // 2. 標記本地更新
+            markLocalUpdate(productName, specName, 'restore');
+            
+            // 3. 在背景上傳資料
             try {
                 const result = await jsonpRequest(GAS_WEB_APP_URL, {
                     action: 'clear',
@@ -795,17 +836,25 @@
                 });
                 
                 if (result.success) {
-                    console.log(`✅ 恢復成功: ${productName} - ${specName} 狀態已恢復`);
                     updateSyncStatus('success', '資料已同步');
                 } else {
                     throw new Error(result.error || '恢復失敗');
                 }
             } catch (error) {
-                console.error('⚠️ 恢復失敗:', error);
                 // 上傳失敗時恢復原狀態
                 productsData[rowIndex][7] = oldStatus.status;
                 productsData[rowIndex][8] = oldStatus.shortage;
                 productsData[rowIndex][9] = oldStatus.stock;
+                
+                // 恢復所有重複項目的狀態
+                productsData.forEach((row, index) => {
+                    if (index !== rowIndex && row[1] === productName && row[3] === specName) {
+                        row[7] = oldStatus.status;
+                        row[8] = oldStatus.shortage;
+                        row[9] = oldStatus.stock;
+                    }
+                });
+                
                 renderProducts();
                 updateSyncStatus('error', '恢復失敗，請重試');
                 alert('恢復失敗，請重試');
@@ -851,26 +900,53 @@
             }
 
             const product = productsData[currentRowIndex];
-            const productName = product[1]; // B欄位
-            const specName = product[3]; // D欄位
+            const productName = product[1] || ''; // B欄位
+            const specName = product[3] || ''; // D欄位
             
-            // 1. 立即更新本地資料和UI
+
+            
+            // 1. 立即更新本地資料和UI (包括所有重複項目)
             if (currentActionType === 'shortage') {
                 productsData[currentRowIndex][7] = '缺量';
                 productsData[currentRowIndex][8] = quantity;
+                
+                // 更新所有相同商品名稱+規格名稱的重複項目
+                productsData.forEach((row, index) => {
+                    if (index !== currentRowIndex && row[1] === productName && row[3] === specName) {
+                        row[7] = '缺量';
+                        row[8] = quantity;
+                    }
+                });
             } else if (currentActionType === 'restock') {
                 productsData[currentRowIndex][7] = '要補貨';
                 productsData[currentRowIndex][9] = quantity;
+                
+                // 更新所有相同商品名稱+規格名稱的重複項目
+                productsData.forEach((row, index) => {
+                    if (index !== currentRowIndex && row[1] === productName && row[3] === specName) {
+                        row[7] = '要補貨';
+                        row[9] = quantity;
+                    }
+                });
             }
             
             renderProducts();
+            
+            // 保存 actionType 和 rowIndex，因為 closeModal() 會重置它們
+            const actionTypeToUpload = currentActionType;
+            const rowIndexToUpload = currentRowIndex;
+            
             closeModal();
             
-            // 2. 在背景上傳資料
+            // 2. 標記本地更新
+            markLocalUpdate(productName, specName, actionTypeToUpload);
+            
+            // 3. 在背景上傳資料 (串行上傳確保穩定性)
+            showSyncIndicator('uploading', '⬆️ 上傳中...');
             try {
-                if (currentActionType === 'shortage') {
-                    // 先設定狀態
-                    await jsonpRequest(GAS_WEB_APP_URL, {
+                if (actionTypeToUpload === 'shortage') {
+                    // 先上傳狀態
+                    const statusResult = await jsonpRequest(GAS_WEB_APP_URL, {
                         action: 'update',
                         sheetId: SHEET_ID,
                         productName: productName,
@@ -879,8 +955,12 @@
                         value: '缺量'
                     });
                     
-                    // 再設定數量
-                    await jsonpRequest(GAS_WEB_APP_URL, {
+                    if (!statusResult.success) {
+                        throw new Error(`狀態上傳失敗: ${statusResult.error || '未知錯誤'}`);
+                    }
+                    
+                    // 再上傳數量
+                    const quantityResult = await jsonpRequest(GAS_WEB_APP_URL, {
                         action: 'update',
                         sheetId: SHEET_ID,
                         productName: productName,
@@ -889,10 +969,16 @@
                         value: quantity
                     });
                     
-                    console.log(`✅ 上傳成功: ${productName} - ${specName} 缺量 ${quantity}`);
-                } else if (currentActionType === 'restock') {
-                    // 先設定狀態
-                    await jsonpRequest(GAS_WEB_APP_URL, {
+                    if (!quantityResult.success) {
+                        throw new Error(`數量上傳失敗: ${quantityResult.error || '未知錯誤'}`);
+                    }
+                    
+                    updateSyncStatus('success', '資料已同步');
+                    showSyncIndicator('success', '✅ 已同步');
+                    
+                } else if (actionTypeToUpload === 'restock') {
+                    // 先上傳狀態
+                    const statusResult = await jsonpRequest(GAS_WEB_APP_URL, {
                         action: 'update',
                         sheetId: SHEET_ID,
                         productName: productName,
@@ -901,8 +987,12 @@
                         value: '要補貨'
                     });
                     
-                    // 再設定庫存數量
-                    await jsonpRequest(GAS_WEB_APP_URL, {
+                    if (!statusResult.success) {
+                        throw new Error(`狀態上傳失敗: ${statusResult.error || '未知錯誤'}`);
+                    }
+                    
+                    // 再上傳庫存數量
+                    const stockResult = await jsonpRequest(GAS_WEB_APP_URL, {
                         action: 'update',
                         sheetId: SHEET_ID,
                         productName: productName,
@@ -911,18 +1001,31 @@
                         value: quantity
                     });
                     
-                    console.log(`✅ 上傳成功: ${productName} - ${specName} 要補貨 (庫存:${quantity})`);
+                    if (!stockResult.success) {
+                        throw new Error(`庫存數量上傳失敗: ${stockResult.error || '未知錯誤'}`);
+                    }
+                    
+                    updateSyncStatus('success', '資料已同步');
+                    showSyncIndicator('success', '✅ 已同步');
                 }
-                
-                updateSyncStatus('success', '資料已同步');
             } catch (error) {
-                console.error('⚠️ 上傳失敗:', error);
-                // 上傳失敗時清除狀態
-                productsData[currentRowIndex][7] = '';
-                productsData[currentRowIndex][8] = '';
-                productsData[currentRowIndex][9] = '';
+                // 上傳失敗時清除狀態 (包括所有重複項目)
+                productsData[rowIndexToUpload][7] = '';
+                productsData[rowIndexToUpload][8] = '';
+                productsData[rowIndexToUpload][9] = '';
+                
+                // 清除所有重複項目的狀態
+                productsData.forEach((row, index) => {
+                    if (index !== rowIndexToUpload && row[1] === productName && row[3] === specName) {
+                        row[7] = '';
+                        row[8] = '';
+                        row[9] = '';
+                    }
+                });
+                
                 renderProducts();
                 updateSyncStatus('error', '上傳失敗，請重試');
+                showSyncIndicator('error', '❌ 上傳失敗');
                 alert('上傳失敗，請重試');
             }
         }
@@ -947,7 +1050,6 @@
                 if (result.success && result.data && result.data.length > 1) {
                     const newData = result.data.slice(1);
                     let hasChanges = false;
-                    let conflicts = [];
                     
                     newData.forEach((newRow, index) => {
                         if (index < productsData.length) {
@@ -963,34 +1065,15 @@
                                 }
                             }
                             
-                            // 檢查H-J欄位更新
-                            const hasRemoteUpdate = newRow[7] !== currentRow[7] || 
-                                                  newRow[8] !== currentRow[8] || 
-                                                  newRow[9] !== currentRow[9];
+                            // 檢查H-J欄位更新，但保護最近的本地更新
+                            const isRecentLocal = isRecentLocalUpdate(productName, specName, 5000); // 5秒內保護
                             
-                            if (hasRemoteUpdate) {
-                                const isRecentLocal = isRecentLocalUpdate(productName, specName);
-                                
-                                if (isRecentLocal) {
-                                    // 最近有本地更新，檢查是否有衝突
-                                    if (hasConflict(currentRow, newRow)) {
-                                        conflicts.push({
-                                            productName,
-                                            specName,
-                                            local: {
-                                                status: currentRow[7],
-                                                shortage: currentRow[8],
-                                                stock: currentRow[9]
-                                            },
-                                            remote: {
-                                                status: newRow[7],
-                                                shortage: newRow[8],
-                                                stock: newRow[9]
-                                            }
-                                        });
-                                    }
-                                } else {
-                                    // 沒有最近的本地更新，安全地更新遠端狀態
+                            if (!isRecentLocal) {
+                                // 沒有最近的本地更新，安全地更新遠端狀態
+                                if (newRow[7] !== currentRow[7] || 
+                                    newRow[8] !== currentRow[8] || 
+                                    newRow[9] !== currentRow[9]) {
+                                    
                                     currentRow[7] = newRow[7];
                                     currentRow[8] = newRow[8];
                                     currentRow[9] = newRow[9];
@@ -1008,21 +1091,14 @@
                         }
                     }
                     
-                    // 處理衝突
-                    if (conflicts.length > 0) {
-                        handleConflicts(conflicts);
-                    }
-                    
                     if (hasChanges) {
                         renderProducts();
                         updateSyncStatus('success', '資料已同步');
-                        if (conflicts.length === 0) {
-                            showSyncIndicator('success', '🔄 已更新');
-                        }
+                        showSyncIndicator('success', '🔄 已更新');
                     }
                 }
             } catch (error) {
-                console.error('自動刷新失敗:', error);
+                // 自動刷新失敗，靜默處理
             }
         }
 
@@ -1068,6 +1144,8 @@
                 }, 2000);
             }
         }
+
+
     </script>
 </body>
 </html>
