@@ -15,7 +15,7 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 15px;
+            padding: 10px;
             margin: 0;
         }
 
@@ -512,27 +512,65 @@
         /* 搜尋和篩選區域 */
         .search-filter-container {
             position: sticky;
-            top: 0;
+            top: 10px;
             z-index: 100;
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
-            border-radius: 20px;
-            margin-bottom: 25px;
-            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
+        .search-filter-row {
+            display: grid;
+            grid-template-columns: 1fr auto auto auto auto;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .search-container {
+            position: relative;
+        }
+
         .search-box {
             width: 100%;
-            padding: 15px 20px;
-            font-size: 16px;
+            padding: 12px 40px 12px 15px;
+            font-size: 14px;
             border: 2px solid rgba(102, 126, 234, 0.3);
-            border-radius: 15px;
+            border-radius: 12px;
             background: rgba(255, 255, 255, 0.9);
-            margin-bottom: 15px;
             transition: all 0.3s ease;
             font-weight: 500;
+        }
+
+        .search-clear-btn {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            color: #666;
+            transition: all 0.3s ease;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .search-clear-btn:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+
+        .search-clear-btn.hidden {
+            display: none;
         }
 
         .search-box:focus {
@@ -543,22 +581,22 @@
         }
 
         .filter-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr 1fr;
-            gap: 12px;
+            display: contents;
         }
 
         .filter-btn {
-            padding: 12px 16px;
+            padding: 8px 2px;
             border: 2px solid rgba(102, 126, 234, 0.3);
-            border-radius: 12px;
+            border-radius: 10px;
             background: rgba(255, 255, 255, 0.9);
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             text-align: center;
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             color: #4a5568;
+            white-space: nowrap;
+            min-width: 40px;
         }
 
         .filter-btn.active {
@@ -656,32 +694,25 @@
     </style>
 </head>
 <body>
-    <div class="success-banner">
-        ⚡ 完整版：即時UI更新 + 1.5秒自動同步 + 穩定上傳
-    </div>
-
     <!-- 同步狀態指示器 -->
     <div id="syncIndicator" class="sync-indicator hidden"></div>
 
-    <div class="header">
-        <h1>🦐 蝦皮檢貨系統 (完整版)</h1>
-        <div class="sync-status" id="syncStatus">
-            <span class="status-indicator status-pending"></span>
-            準備連接中...
-        </div>
-    </div>
-
     <!-- 搜尋和篩選區域 -->
     <div class="search-filter-container">
-        <input type="text" class="search-box" id="searchBox" placeholder="🔍 搜尋商品名稱、規格、SKU..." oninput="filterProducts()">
-        <div class="filter-buttons">
-            <button class="filter-btn active" id="filterAll" onclick="setFilter('all')">📦 全部</button>
-            <button class="filter-btn" id="filterShortage" onclick="setFilter('shortage')">⚠️ 缺量</button>
-            <button class="filter-btn" id="filterRestock" onclick="setFilter('restock')">🔄 要補貨</button>
-            <button class="filter-btn" id="filterPending" onclick="setFilter('pending')">
-                📋 未處理
-                <span class="count-badge" id="pendingCountBadge" style="display: none;">0</span>
-            </button>
+        <div class="search-filter-row">
+            <div class="search-container">
+                <input type="text" class="search-box" id="searchBox" placeholder="🔍 搜尋..." oninput="filterProducts()">
+                <button class="search-clear-btn hidden" id="searchClearBtn" onclick="clearSearch()">✕</button>
+            </div>
+            <div class="filter-buttons">
+                <button class="filter-btn active" id="filterAll" onclick="setFilter('all')">全部</button>
+                <button class="filter-btn" id="filterShortage" onclick="setFilter('shortage')">缺量</button>
+                <button class="filter-btn" id="filterRestock" onclick="setFilter('restock')">要補貨</button>
+                <button class="filter-btn" id="filterPending" onclick="setFilter('pending')">
+                    未處理
+                    <span class="count-badge" id="pendingCountBadge" style="display: none;">0</span>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -833,6 +864,8 @@
                 
                 if (result.success && result.data && result.data.length > 1) {
                     productsData = result.data.slice(1); // 跳過標題行
+                    
+                    
                     renderProducts();
                     updateSyncStatus('success', '資料同步完成');
                 } else {
@@ -957,6 +990,7 @@
                         </div>` : ''}
                     ${products.map(product => {
                         const { originalIndex, mainSku, productName, optionSku, specName, location, quantity, note, status, shortageQty, stockQty, isGroupStart, isGroupEnd, groupSize, groupIndex } = product;
+                        
                             
                             let cardClass = '';
                             let statusText = '';
@@ -994,11 +1028,11 @@
                                         群組 ${groupIndex + 1}/${groupSize}
                                     </div>` : ''}
                                 </div>
-                                ${note ? `
+                                ${note && note.trim() ? `
                                 <div class="variant-details">
                                     <div class="detail-row">
                                         <span class="detail-icon">📝</span>
-                                        <span class="detail-text">${note}</span>
+                                        <span class="detail-text">${note.trim()}</span>
                                     </div>
                                 </div>` : ''}
                                 ${statusText ? `<div class="status-display">${statusText}</div>` : ''}
@@ -1021,8 +1055,14 @@
             const product = productsData[rowIndex];
             const productName = product[1] || ''; // B欄位
             const specName = product[3] || ''; // D欄位
+            const currentStatus = product[7] || '';
             
-
+            // 如果點擊的是當前狀態，則切換回未處理狀態
+            if (currentStatus === status) {
+                // 切換回未處理狀態
+                restoreStatus(rowIndex);
+                return;
+            }
             
             // 1. 立即更新本地資料和UI (包括所有重複項目)
             productsData[rowIndex][7] = status;
@@ -1047,11 +1087,11 @@
                     sheetId: SHEET_ID,
                     productName: productName,
                     specName: specName,
-                    updates: {
+                    updates: JSON.stringify({
                         H: status,
                         I: '',
                         J: ''
-                    }
+                    })
                 });
                 
                 if (result.success) {
@@ -1116,11 +1156,11 @@
                     sheetId: SHEET_ID,
                     productName: productName,
                     specName: specName,
-                    updates: {
+                    updates: JSON.stringify({
                         H: '',
                         I: '',
                         J: ''
-                    }
+                    })
                 });
                 
                 if (result.success) {
@@ -1274,7 +1314,7 @@
                     sheetId: SHEET_ID,
                     productName: productName,
                     specName: specName,
-                    updates: updates
+                    updates: JSON.stringify(updates)
                 });
                 
                 if (result.success) {
@@ -1378,26 +1418,10 @@
             }
         }
 
-        // 更新同步狀態
+        // 更新同步狀態 (簡化版本 - 只使用右上角指示器)
         function updateSyncStatus(type, message) {
-            const syncStatus = document.getElementById('syncStatus');
-            const indicator = syncStatus.querySelector('.status-indicator');
-            
-            indicator.className = 'status-indicator';
-            
-            switch(type) {
-                case 'loading':
-                    indicator.classList.add('status-pending');
-                    break;
-                case 'success':
-                    indicator.classList.add('status-checked');
-                    break;
-                case 'error':
-                    indicator.classList.add('status-restock');
-                    break;
-            }
-            
-            syncStatus.innerHTML = `<span class="status-indicator ${indicator.className.split(' ')[1]}"></span>${message}`;
+            // 同步狀態現在只通過右上角的 syncIndicator 顯示
+            showSyncIndicator(type, message);
         }
 
         // 顯示同步指示器
@@ -1424,7 +1448,28 @@
         // 搜尋功能
         function filterProducts() {
             const searchBox = document.getElementById('searchBox');
+            const clearBtn = document.getElementById('searchClearBtn');
             searchQuery = searchBox.value.toLowerCase().trim();
+            
+            // 顯示或隱藏清除按鍵
+            if (searchQuery) {
+                clearBtn.classList.remove('hidden');
+            } else {
+                clearBtn.classList.add('hidden');
+            }
+            
+            applyFilters();
+        }
+
+        // 清除搜尋
+        function clearSearch() {
+            const searchBox = document.getElementById('searchBox');
+            const clearBtn = document.getElementById('searchClearBtn');
+            
+            searchBox.value = '';
+            searchQuery = '';
+            clearBtn.classList.add('hidden');
+            
             applyFilters();
         }
 
@@ -1459,14 +1504,16 @@
                 const specName = (product[3] || '').toLowerCase();
                 const optionSku = (product[2] || '').toLowerCase();
                 const mainSku = (product[0] || '').toLowerCase();
+                const note = (product[6] || '').toLowerCase();
                 const status = product[7] || '';
                 
-                // 搜尋匹配
+                // 搜尋匹配 (包含備註)
                 const searchMatch = !searchQuery || 
                     productName.includes(searchQuery) ||
                     specName.includes(searchQuery) ||
                     optionSku.includes(searchQuery) ||
-                    mainSku.includes(searchQuery);
+                    mainSku.includes(searchQuery) ||
+                    note.includes(searchQuery);
                 
                 // 狀態篩選
                 let statusMatch = true;
@@ -1502,59 +1549,81 @@
         }
 
 
-        // 導航到未處理項目 - 以儲位為主
+        // 導航到未處理項目
         function navigateToPending(direction) {
             const visibleCards = Array.from(document.querySelectorAll('.variant-card')).filter(card => {
                 return card.style.display !== 'none';
             });
             
-            // 取得所有未處理項目的儲位
-            const pendingLocations = new Map();
-            visibleCards.forEach(card => {
+            // 取得所有未處理項目
+            const pendingCards = visibleCards.filter(card => {
                 const cardId = card.id;
                 const rowIndex = parseInt(cardId.replace('card-', ''));
                 const product = productsData[rowIndex];
-                
-                if (product && (!product[7] || product[7] === '')) {
-                    const location = product[4] || '未設定儲位';
-                    if (!pendingLocations.has(location)) {
-                        pendingLocations.set(location, card);
-                    }
-                }
+                return product && (!product[7] || product[7] === '');
             });
             
-            const pendingLocationCards = Array.from(pendingLocations.values());
-            
-            if (pendingLocationCards.length === 0) {
-                alert('沒有找到未處理的儲位');
+            if (pendingCards.length === 0) {
+                alert('沒有找到未處理的項目');
                 return;
             }
+            
+            // 計算每個卡片的絕對位置並排序
+            const cardsWithPosition = pendingCards.map(card => {
+                const rect = card.getBoundingClientRect();
+                return {
+                    card: card,
+                    absoluteTop: rect.top + window.scrollY
+                };
+            }).sort((a, b) => a.absoluteTop - b.absoluteTop);
             
             // 取得目前視窗位置
             const currentScrollY = window.scrollY;
             const windowHeight = window.innerHeight;
+            const currentViewTop = currentScrollY;
+            const currentViewBottom = currentScrollY + windowHeight;
             const currentViewCenter = currentScrollY + windowHeight / 2;
             
             let targetCard = null;
             
             if (direction === 'up') {
-                // 向上尋找：找到當前視窗上方最近的未處理儲位
-                const cardsAbove = pendingLocationCards.filter(card => {
-                    const rect = card.getBoundingClientRect();
-                    const cardTop = rect.top + window.scrollY;
-                    return cardTop < currentViewCenter;
-                }).reverse(); // 反轉以便找到最接近的
+                // 向上尋找：找到當前視窗上方最近的未處理項目
+                let foundCard = null;
                 
-                targetCard = cardsAbove[0] || pendingLocationCards[pendingLocationCards.length - 1]; // 如果沒有上方的，跳到最後一個儲位
+                // 從後往前找（從下往上找），找到第一個在當前視窗上方的項目
+                for (let i = cardsWithPosition.length - 1; i >= 0; i--) {
+                    const item = cardsWithPosition[i];
+                    if (item.absoluteTop < currentViewTop - 50) { // 50px 的緩衝區
+                        foundCard = item.card;
+                        break;
+                    }
+                }
+                
+                if (foundCard) {
+                    targetCard = foundCard;
+                } else {
+                    // 如果沒有上方的，環繞到最後一個（最底部的）
+                    targetCard = cardsWithPosition[cardsWithPosition.length - 1].card;
+                }
             } else {
-                // 向下尋找：找到當前視窗下方最近的未處理儲位
-                const cardsBelow = pendingLocationCards.filter(card => {
-                    const rect = card.getBoundingClientRect();
-                    const cardTop = rect.top + window.scrollY;
-                    return cardTop > currentViewCenter;
-                });
+                // 向下尋找：找到當前視窗下方最近的未處理項目
+                let foundCard = null;
                 
-                targetCard = cardsBelow[0] || pendingLocationCards[0]; // 如果沒有下方的，跳到第一個儲位
+                // 從前往後找（從上往下找），找到第一個在當前視窗下方的項目
+                for (let i = 0; i < cardsWithPosition.length; i++) {
+                    const item = cardsWithPosition[i];
+                    if (item.absoluteTop > currentViewBottom + 50) { // 50px 的緩衝區
+                        foundCard = item.card;
+                        break;
+                    }
+                }
+                
+                if (foundCard) {
+                    targetCard = foundCard;
+                } else {
+                    // 如果沒有下方的，環繞到第一個（最頂部的）
+                    targetCard = cardsWithPosition[0].card;
+                }
             }
             
             if (targetCard) {
