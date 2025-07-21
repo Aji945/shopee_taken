@@ -68,7 +68,7 @@
             color: white;
             padding: 20px 25px;
             text-align: center;
-            font-size: 18px;
+            font-size: 33px;
             font-weight: 700;
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
         }
@@ -170,20 +170,20 @@
 
         .option-sku-quantity {
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
             align-items: center;
             background: rgba(102, 126, 234, 0.1);
             padding: 12px 16px;
             border-radius: 12px;
             margin-bottom: 15px;
+            gap: 2px;
         }
-
         .option-sku {
             font-size: 22px;
             color: #203cb9;
             font-weight: 600;
+            margin-bottom: 2px;
         }
-
         .quantity-display {
             font-size: 24px;
             font-weight: 800;
@@ -198,7 +198,7 @@
             display: flex;
             align-items: center;
             margin-bottom: 12px;
-            font-size: 16px;
+            font-size: 24px;
             padding: 8px 0;
         }
 
@@ -233,7 +233,7 @@
         }
 
         .action-btn {
-            padding: 16px 12px;
+            padding: 16px 7px;
             border: none;
             border-radius: 12px;
             font-size: 24px;
@@ -986,7 +986,7 @@
                 return `
                     ${isGrouped ? `<div class="product-group">
                         <div class="product-group-header">
-                            📦 ${firstProduct.productName} - ${firstProduct.location || '未設定儲位'} (${products.length}筆)
+                            ${firstProduct.location || '未設定儲位'} (${products.length}筆)
                         </div>` : ''}
                     ${products.map(product => {
                         const { originalIndex, mainSku, productName, optionSku, specName, location, quantity, note, status, shortageQty, stockQty, isGroupStart, isGroupEnd, groupSize, groupIndex } = product;
