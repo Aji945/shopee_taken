@@ -1,3 +1,57 @@
+function clearDataAndShopeeHJRange() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+
+  // -------- 1️⃣ 清空當前作用工作表 A:Z（依 A+B 欄最末列）--------
+  const sheet = ss.getActiveSheet();
+  const lastRowA = sheet.getRange("A:A").getLastRow();
+  const lastRowB = sheet.getRange("B:B").getLastRow();
+  const lastRow = Math.max(lastRowA, lastRowB);
+
+  if (lastRow > 0) {
+    sheet.getRange(1, 1, lastRow, 26).clearContent(); // A=1, Z=26 共26欄
+  }
+
+  sheet.getRange("A1").setValue("請先點X清除後，在這裡貼上，並按+");
+
+  // -------- 2️⃣ 清空「蝦皮」工作表中 H1:J到最後有資料的列 --------
+  const shopee = ss.getSheetByName("蝦皮");
+  if (!shopee) {
+    Logger.log("⚠️ 找不到名為『蝦皮』的工作表");
+    return;
+  }
+
+  const rangeHJ = shopee.getRange("H:J").getValues(); // 拿 H~J 全列資料
+  let lastDataRow = 0;
+
+  for (let i = rangeHJ.length - 1; i >= 0; i--) {
+    const row = rangeHJ[i];
+    if (row[0] !== "" || row[1] !== "" || row[2] !== "") {
+      lastDataRow = i + 1; // 因為 index 是 0-based，要 +1 才是實際列號
+      break;
+    }
+  }
+
+  if (lastDataRow > 0) {
+    shopee.getRange(1, 8, lastDataRow, 3).clearContent(); // 從 H1:J{last} 共 3欄
+  }
+}
+
+function fillFormulasToGColumnAuto() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  const lastRow = sheet.getRange("B:B").getLastRow();
+
+  const formulas = [];
+  for (let i = 0; i < lastRow - 4; i++) {
+    const row = i + 5;
+    formulas.push([`=IF(N${row}<>"" , N${row} & "+" & O${row}, "")`]);
+  }
+
+  if (formulas.length > 0) {
+    sheet.getRange(5, 7, formulas.length, 1).setFormulas(formulas);
+  }
+}
+
+
 // Google Apps Script 代碼
 // 需要部署為Web應用程式，允許匿名存取
 
