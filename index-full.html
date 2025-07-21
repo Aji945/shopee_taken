@@ -63,6 +63,16 @@
             overflow: hidden;
         }
 
+        .product-group-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px 25px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 700;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
         .product-header {
             background: linear-gradient(135deg, #2d3748, #4a5568);
             color: white;
@@ -151,7 +161,7 @@
         }
 
         .spec-name {
-            font-size: 22px;
+            font-size: 18px;
             font-weight: 700;
             color: #2d3748;
             margin-bottom: 10px;
@@ -612,7 +622,7 @@
             }
         }
 
-        // 按原始順序處理資料，只有相同商品名稱+相同選項名稱才合併
+        // 保持原始順序，整合緊鄰的相同商品名稱+相同儲位
         function processProductsData(data) {
             const result = [];
             const processed = new Set();
@@ -621,45 +631,70 @@
                 if (processed.has(originalIndex)) return;
                 
                 const productName = row[1] || '';
-                const specName = row[3] || '';
-                const key = `${productName}|||${specName}`;
+                const location = row[4] || '';
+                const key = `${productName}|||${location}`;
                 
-                // 找出所有相同商品名稱+選項名稱的項目
+                // 找出緊鄰的相同商品名稱+相同儲位項目
                 const sameItems = [];
-                data.forEach((checkRow, checkIndex) => {
-                    if (processed.has(checkIndex)) return;
-                    const checkProductName = checkRow[1] || '';
-                    const checkSpecName = checkRow[3] || '';
-                    const checkKey = `${checkProductName}|||${checkSpecName}`;
-                    
-                    if (checkKey === key) {
-                        sameItems.push({
-                            originalIndex: checkIndex,
-                            row: checkRow
-                        });
-                        processed.add(checkIndex);
-                    }
-                });
+                let currentIndex = originalIndex;
+                
+                // 向前查找緊鄰的相同項目
+                while (currentIndex >= 0 && 
+                       (data[currentIndex][1] || '') === productName && 
+                       (data[currentIndex][4] || '') === location && 
+                       !processed.has(currentIndex)) {
+                    sameItems.unshift({
+                        originalIndex: currentIndex,
+                        row: data[currentIndex]
+                    });
+                    processed.add(currentIndex);
+                    currentIndex--;
+                }
+                
+                // 向後查找緊鄰的相同項目
+                currentIndex = originalIndex + 1;
+                while (currentIndex < data.length && 
+                       (data[currentIndex][1] || '') === productName && 
+                       (data[currentIndex][4] || '') === location && 
+                       !processed.has(currentIndex)) {
+                    sameItems.push({
+                        originalIndex: currentIndex,
+                        row: data[currentIndex]
+                    });
+                    processed.add(currentIndex);
+                    currentIndex++;
+                }
                 
                 if (sameItems.length > 0) {
-                    // 使用第一筆資料作為代表
-                    const firstItem = sameItems[0];
-                    result.push({
-                        originalIndex: firstItem.originalIndex,
-                        mainSku: firstItem.row[0] || '',
-                        productName: productName,
-                        optionSku: firstItem.row[2] || '',
-                        specName: specName,
-                        location: firstItem.row[4] || '',
-                        quantity: firstItem.row[5] || '',
-                        note: firstItem.row[6] || '',
-                        status: firstItem.row[7] || '',
-                        shortageQty: firstItem.row[8] || '',
-                        stockQty: firstItem.row[9] || '',
-                        duplicates: sameItems.slice(1) // 其他重複項目
+                    // 按原始順序排序
+                    sameItems.sort((a, b) => a.originalIndex - b.originalIndex);
+                    
+                    // 將每一筆資料都加入結果，但標記為同一區域
+                    sameItems.forEach((item, index) => {
+                        const row = item.row;
+                        result.push({
+                            originalIndex: item.originalIndex,
+                            mainSku: row[0] || '',
+                            productName: productName,
+                            optionSku: row[2] || '',
+                            specName: row[3] || '',
+                            location: location,
+                            quantity: row[5] || '',
+                            note: row[6] || '',
+                            status: row[7] || '',
+                            shortageQty: row[8] || '',
+                            stockQty: row[9] || '',
+                            isGroupStart: index === 0, // 是否為群組開始
+                            isGroupEnd: index === sameItems.length - 1, // 是否為群組結束
+                            groupSize: sameItems.length, // 群組大小
+                            groupIndex: index // 在群組中的索引
+                        });
                     });
                 }
             });
+            
+            // 按原始順序排序結果
+            result.sort((a, b) => a.originalIndex - b.originalIndex);
             
             return result;
         }
@@ -677,61 +712,84 @@
             loadingDiv.style.display = 'none';
             productList.style.display = 'block';
             
-            const processedProducts = processProductsData(productsData);
+                        const processedProducts = processProductsData(productsData);
             
-            productList.innerHTML = processedProducts.map(product => {
-                const { originalIndex, mainSku, productName, optionSku, specName, location, quantity, note, status, shortageQty, stockQty, duplicates } = product;
-                
-                let cardClass = '';
-                let statusText = '';
-                let buttonHtml = '';
-                
-                if (status === '已檢貨') {
-                    cardClass = 'checked';
-                    statusText = '✓ 已檢貨';
-                    buttonHtml = `<button class="action-btn btn-restore" onclick="restoreStatus(${originalIndex})">恢復</button>`;
-                } else if (status === '缺量') {
-                    cardClass = 'shortage';
-                    statusText = `⚠️ 缺量${shortageQty ? ` (${shortageQty})` : ''}`;
-                    buttonHtml = `<button class="action-btn btn-restore" onclick="restoreStatus(${originalIndex})">恢復</button>`;
-                } else if (status === '要補貨') {
-                    cardClass = 'restock';
-                    statusText = `🔄 要補貨${stockQty ? ` (庫存:${stockQty})` : ''}`;
-                    buttonHtml = `<button class="action-btn btn-restore" onclick="restoreStatus(${originalIndex})">恢復</button>`;
-                } else {
-                    buttonHtml = `
-                        <button class="action-btn btn-checked" onclick="setStatus(${originalIndex}, '已檢貨')">已檢貨</button>
-                        <button class="action-btn btn-shortage" onclick="showQuantityModal(${originalIndex}, 'shortage')">缺量</button>
-                        <button class="action-btn btn-restock" onclick="showQuantityModal(${originalIndex}, 'restock')">要補貨</button>
-                    `;
+            // 按商品名稱+儲位分組渲染
+            const productGroups = new Map();
+            processedProducts.forEach(product => {
+                const groupKey = `${product.productName}|||${product.location}`;
+                if (!productGroups.has(groupKey)) {
+                    productGroups.set(groupKey, []);
                 }
+                productGroups.get(groupKey).push(product);
+            });
+            
+            productList.innerHTML = Array.from(productGroups.entries()).map(([groupKey, products]) => {
+                // 檢查是否為緊鄰的群組（只有一個群組且大小大於1）
+                const isGrouped = products.length > 1 && products.every(p => p.groupSize > 1);
+                const firstProduct = products[0];
                 
                 return `
-                    <div class="variant-card ${cardClass}" id="card-${originalIndex}">
-                        <div class="variant-header">
-                            <div class="location-primary">📍 ${location || '未設定儲位'}</div>
-                            <div class="spec-name">${productName}</div>
-                            <div class="option-sku-quantity">
-                                <span class="option-sku">${specName}</span>
-                                <span class="quantity-display">📦 ${quantity}</span>
-                            </div>
-                            ${duplicates && duplicates.length > 0 ? `
-                            <div style="font-size: 12px; color: #666; margin-top: 8px;">
-                                合併 ${duplicates.length + 1} 筆相同項目
-                            </div>` : ''}
-                        </div>
-                        ${note ? `
-                        <div class="variant-details">
-                            <div class="detail-row">
-                                <span class="detail-icon">📝</span>
-                                <span class="detail-text">${note}</span>
-                            </div>
+                    ${isGrouped ? `<div class="product-group">
+                        <div class="product-group-header">
+                            📦 ${firstProduct.productName} - ${firstProduct.location || '未設定儲位'} (${products.length}筆)
                         </div>` : ''}
-                        ${statusText ? `<div class="status-display">${statusText}</div>` : ''}
-                        <div class="action-buttons">
-                            ${buttonHtml}
-                        </div>
-                    </div>
+                    ${products.map(product => {
+                        const { originalIndex, mainSku, productName, optionSku, specName, location, quantity, note, status, shortageQty, stockQty, isGroupStart, isGroupEnd, groupSize, groupIndex } = product;
+                            
+                            let cardClass = '';
+                            let statusText = '';
+                            let buttonHtml = '';
+                            
+                            if (status === '已檢貨') {
+                                cardClass = 'checked';
+                                statusText = '✓ 已檢貨';
+                                buttonHtml = `<button class="action-btn btn-restore" onclick="restoreStatus(${originalIndex})">恢復</button>`;
+                            } else if (status === '缺量') {
+                                cardClass = 'shortage';
+                                statusText = `⚠️ 缺量${shortageQty ? ` (${shortageQty})` : ''}`;
+                                buttonHtml = `<button class="action-btn btn-restore" onclick="restoreStatus(${originalIndex})">恢復</button>`;
+                            } else if (status === '要補貨') {
+                                cardClass = 'restock';
+                                statusText = `🔄 要補貨${stockQty ? ` (庫存:${stockQty})` : ''}`;
+                                buttonHtml = `<button class="action-btn btn-restore" onclick="restoreStatus(${originalIndex})">恢復</button>`;
+                            } else {
+                                buttonHtml = `
+                                    <button class="action-btn btn-checked" onclick="setStatus(${originalIndex}, '已檢貨')">已檢貨</button>
+                                    <button class="action-btn btn-shortage" onclick="showQuantityModal(${originalIndex}, 'shortage')">缺量</button>
+                                    <button class="action-btn btn-restock" onclick="showQuantityModal(${originalIndex}, 'restock')">要補貨</button>
+                                `;
+                            }
+                            
+                                        return `
+                            <div class="variant-card ${cardClass}" id="card-${originalIndex}">
+                                <div class="variant-header">
+                                    <div class="location-primary">📍 ${location || '未設定儲位'}</div>
+                                    <div class="spec-name">${productName}</div>
+                                    <div class="option-sku-quantity">
+                                        <span class="option-sku">${specName}</span>
+                                        <span class="quantity-display">📦 ${quantity}</span>
+                                    </div>
+                                    ${groupSize > 1 ? `
+                                    <div style="font-size: 12px; color: #666; margin-top: 8px;">
+                                        群組 ${groupIndex + 1}/${groupSize}
+                                    </div>` : ''}
+                                </div>
+                                ${note ? `
+                                <div class="variant-details">
+                                    <div class="detail-row">
+                                        <span class="detail-icon">📝</span>
+                                        <span class="detail-text">${note}</span>
+                                    </div>
+                                </div>` : ''}
+                                ${statusText ? `<div class="status-display">${statusText}</div>` : ''}
+                                <div class="action-buttons">
+                                    ${buttonHtml}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                    ${isGrouped ? `</div>` : ''}
                 `;
             }).join('');
         }
