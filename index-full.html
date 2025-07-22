@@ -1104,7 +1104,7 @@
                                     <div class="location-primary">📍 ${location || '未設定儲位'}</div>
                                     <div class="spec-name">${productName}</div>
                                     <div class="option-sku-quantity">
-                                        <span class="option-sku">${specName}</span>
+                                        <span class="option-sku">${specName}${optionSku ? ' (' + optionSku + ')' : ''}</span>
                                         <span class="quantity-display">📦 ${quantity}</span>
                                     </div>
                                     ${groupSize > 1 ? `
