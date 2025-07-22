@@ -143,6 +143,12 @@
             box-shadow: 0 6px 25px rgba(220, 53, 69, 0.2);
         }
 
+        .variant-card.position-error {
+            background: linear-gradient(135deg, #e9d8fd, #d6bcfa);
+            border-color: #805ad5;
+            box-shadow: 0 6px 25px rgba(128, 90, 213, 0.2);
+        }
+
         .variant-header {
             margin-bottom: 20px;
         }
@@ -233,7 +239,7 @@
         }
 
         .action-btn {
-            padding: 16px 7px;
+            padding: 9px 4px;
             border: none;
             border-radius: 12px;
             font-size: 24px;
@@ -258,6 +264,16 @@
 
         .btn-restock {
             background: linear-gradient(135deg, #f56565, #e53e3e);
+            color: white;
+        }
+
+        .btn-position-error {
+            background: linear-gradient(135deg, #9f7aea, #805ad5);
+            color: white;
+        }
+
+        .btn-note {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
             color: white;
         }
 
@@ -436,6 +452,24 @@
 
         .modal-btn:active {
             transform: scale(0.95);
+        }
+
+        .note-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 100px;
+            box-sizing: border-box;
+        }
+
+        .note-input:focus {
+            outline: none;
+            border-color: #4299e1;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
         }
 
         .loading {
@@ -708,6 +742,7 @@
                 <button class="filter-btn active" id="filterAll" onclick="setFilter('all')">全部</button>
                 <button class="filter-btn" id="filterShortage" onclick="setFilter('shortage')">缺量</button>
                 <button class="filter-btn" id="filterRestock" onclick="setFilter('restock')">要補貨</button>
+                <button class="filter-btn" id="filterPositionError" onclick="setFilter('position-error')">倉位錯</button>
                 <button class="filter-btn" id="filterPending" onclick="setFilter('pending')">
                     未處理
                     <span class="count-badge" id="pendingCountBadge" style="display: none;">0</span>
@@ -764,6 +799,17 @@
         </div>
     </div>
 
+    <!-- 備註輸入 Modal -->
+    <div id="noteModal" class="modal">
+        <div class="modal-content">
+            <textarea id="noteInput" class="note-input" placeholder="請輸入備註..." rows="4"></textarea>
+            <div class="modal-actions">
+                <button class="modal-btn btn-cancel" onclick="closeNoteModal()">取消</button>
+                <button class="modal-btn btn-confirm" onclick="confirmNote()">確認</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // 全局變量
         const SHEET_ID = '1xja90NLxCTbQgxUSdx4nI0-BJXMLr0DHhu7Xln612vI';
@@ -813,10 +859,22 @@
                 const callbackName = `jsonp_callback_${++callbackCounter}`;
                 const script = document.createElement('script');
                 
+                // 添加超時處理
+                const timeout = setTimeout(() => {
+                    reject(new Error('JSONP request timeout'));
+                    if (document.head.contains(script)) {
+                        document.head.removeChild(script);
+                    }
+                    delete window[callbackName];
+                }, 10000); // 10秒超時
+                
                 // 設置全局回調函數
                 window[callbackName] = function(data) {
+                    clearTimeout(timeout);
                     resolve(data);
-                    document.head.removeChild(script);
+                    if (document.head.contains(script)) {
+                        document.head.removeChild(script);
+                    }
                     delete window[callbackName];
                 };
                 
@@ -829,22 +887,11 @@
                 script.src = `${url}?${urlParams.toString()}`;
                 
                 script.onerror = () => {
-                    reject(new Error('JSONP request failed'));
-                    document.head.removeChild(script);
-                    delete window[callbackName];
-                };
-                
-                // 添加超時處理
-                const timeout = setTimeout(() => {
-                    reject(new Error('JSONP request timeout'));
-                    document.head.removeChild(script);
-                    delete window[callbackName];
-                }, 10000); // 10秒超時
-                
-                window[callbackName] = function(data) {
                     clearTimeout(timeout);
-                    resolve(data);
-                    document.head.removeChild(script);
+                    reject(new Error('JSONP request failed'));
+                    if (document.head.contains(script)) {
+                        document.head.removeChild(script);
+                    }
                     delete window[callbackName];
                 };
                 
@@ -856,23 +903,49 @@
         async function loadProducts() {
             try {
                 updateSyncStatus('loading', '正在同步資料...');
+                console.log('開始載入商品資料...'); // 調試信息
                 
                 const result = await jsonpRequest(GAS_WEB_APP_URL, {
                     action: 'read',
                     sheetId: SHEET_ID
                 });
                 
-                if (result.success && result.data && result.data.length > 1) {
+                console.log('載入結果:', result); // 調試信息
+                console.log('第一行資料結構:', result.data[0]); // 調試信息
+                console.log('第二行資料結構:', result.data[1]); // 調試信息
+                
+                if (result && result.success && result.data && result.data.length > 1) {
                     productsData = result.data.slice(1); // 跳過標題行
-                    
+                    console.log('成功載入產品數量:', productsData.length); // 調試信息
                     
                     renderProducts();
                     updateSyncStatus('success', '資料同步完成');
                 } else {
-                    throw new Error(result.error || '無法取得資料');
+                    console.error('載入失敗:', result); // 調試信息
+                    throw new Error(result?.error || '無法取得資料或資料格式錯誤');
                 }
             } catch (error) {
-                updateSyncStatus('error', '同步失敗，請重新整理');
+                console.error('載入商品資料錯誤:', error); // 調試信息
+                
+                // 顯示詳細錯誤信息給用戶
+                const loadingDiv = document.getElementById('loadingDiv');
+                loadingDiv.innerHTML = `
+                    <div style="color: #f56565; text-align: center;">
+                        <h3>載入失敗</h3>
+                        <p>錯誤信息：${error.message}</p>
+                        <button onclick="loadProducts()" style="
+                            background: linear-gradient(135deg, #667eea, #764ba2);
+                            color: white;
+                            border: none;
+                            padding: 12px 24px;
+                            border-radius: 8px;
+                            cursor: pointer;
+                            margin-top: 16px;
+                        ">重新載入</button>
+                    </div>
+                `;
+                
+                updateSyncStatus('error', `載入失敗: ${error.message}`);
             }
         }
 
@@ -938,6 +1011,7 @@
                             status: row[7] || '',
                             shortageQty: row[8] || '',
                             stockQty: row[9] || '',
+                            userNote: (row[10] && typeof row[10] === 'string') ? row[10] : '', // K欄位的備註
                             isGroupStart: index === 0, // 是否為群組開始
                             isGroupEnd: index === sameItems.length - 1, // 是否為群組結束
                             groupSize: sameItems.length, // 群組大小
@@ -989,7 +1063,12 @@
                             ${firstProduct.location || '未設定儲位'} (${products.length}筆)
                         </div>` : ''}
                     ${products.map(product => {
-                        const { originalIndex, mainSku, productName, optionSku, specName, location, quantity, note, status, shortageQty, stockQty, isGroupStart, isGroupEnd, groupSize, groupIndex } = product;
+                        const { originalIndex, mainSku, productName, optionSku, specName, location, quantity, note, status, shortageQty, stockQty, userNote, isGroupStart, isGroupEnd, groupSize, groupIndex } = product;
+                        
+                        // 調試信息：檢查第一個產品的userNote
+                        if (originalIndex === 0) {
+                            console.log('第一個產品的userNote:', userNote, 'typeof:', typeof userNote);
+                        }
                         
                             
                             let cardClass = '';
@@ -1005,6 +1084,9 @@
                             } else if (status === '要補貨') {
                                 cardClass = 'restock';
                                 statusText = `🔄 要補貨${stockQty ? ` (庫存:${stockQty})` : ''}`;
+                            } else if (status === '倉位錯') {
+                                cardClass = 'position-error';
+                                statusText = '📍 倉位錯';
                             }
                             
                             // 永遠顯示所有操作按鍵，但根據當前狀態調整樣式
@@ -1012,6 +1094,8 @@
                                 <button class="action-btn btn-checked ${status === '已檢貨' ? 'active' : ''}" onclick="setStatus(${originalIndex}, '已檢貨')">已檢貨</button>
                                 <button class="action-btn btn-shortage ${status === '缺量' ? 'active' : ''}" onclick="showQuantityModal(${originalIndex}, 'shortage')">缺量</button>
                                 <button class="action-btn btn-restock ${status === '要補貨' ? 'active' : ''}" onclick="showQuantityModal(${originalIndex}, 'restock')">要補貨</button>
+                                <button class="action-btn btn-position-error ${status === '倉位錯' ? 'active' : ''}" onclick="setStatus(${originalIndex}, '倉位錯')">倉位錯</button>
+                                <button class="action-btn btn-note" onclick="showNoteModal(${originalIndex})">備註</button>
                             `;
                             
                                         return `
@@ -1035,6 +1119,19 @@
                                         <span class="detail-text">${note.trim()}</span>
                                     </div>
                                 </div>` : ''}
+                                ${(() => {
+                                    const noteToShow = userNote && typeof userNote === 'string' ? userNote.trim() : String(userNote || '').trim();
+                                    if (originalIndex === 0) {
+                                        console.log('備註顯示檢查 - userNote:', userNote, 'noteToShow:', noteToShow, 'will show:', !!noteToShow);
+                                    }
+                                    return noteToShow ? `
+                                    <div class="variant-details">
+                                        <div class="detail-row">
+                                            <span class="detail-icon">💬</span>
+                                            <span class="detail-text">${noteToShow}</span>
+                                        </div>
+                                    </div>` : '';
+                                })()}
                                 ${statusText ? `<div class="status-display">${statusText}</div>` : ''}
                                 <div class="action-buttons">
                                     ${buttonHtml}
@@ -1362,6 +1459,76 @@
             selectedUnit = '入'; // 重設單位
         }
 
+        // 顯示備註輸入框
+        function showNoteModal(rowIndex) {
+            currentRowIndex = rowIndex;
+            const product = productsData[rowIndex];
+            const currentNote = product[10] || ''; // K欄位是索引10
+            
+            // 設定當前備註內容
+            document.getElementById('noteInput').value = currentNote;
+            
+            // 顯示modal
+            document.getElementById('noteModal').style.display = 'block';
+        }
+
+        // 關閉備註輸入框
+        function closeNoteModal() {
+            document.getElementById('noteModal').style.display = 'none';
+            document.getElementById('noteInput').value = '';
+            currentRowIndex = null;
+        }
+
+        // 確認備註
+        async function confirmNote() {
+            const noteText = document.getElementById('noteInput').value.trim();
+            const product = productsData[currentRowIndex];
+            const productName = product[1];
+            const specName = product[3];
+            const originalNote = product[10] || ''; // 保存原始備註
+            
+            try {
+                // 1. 先更新本地數據
+                productsData[currentRowIndex][10] = noteText; // K欄位是索引10
+                
+                // 2. 重新渲染
+                renderProducts();
+                applyFilters();
+                
+                // 3. 關閉modal
+                closeNoteModal();
+                
+                // 4. 背景上傳到Google Sheets
+                showSyncIndicator('uploading', '⬆️ 上傳中...');
+                
+                const result = await jsonpRequest(GAS_WEB_APP_URL, {
+                    action: 'update',
+                    sheetId: SHEET_ID,
+                    productName: productName,
+                    specName: specName,
+                    column: 'K',
+                    value: noteText
+                });
+                
+                console.log('備註上傳結果:', result); // 調試信息
+                
+                if (result && result.success) {
+                    updateSyncStatus('success', '備註已保存');
+                    showSyncIndicator('success', '✅ 備註已同步');
+                } else {
+                    throw new Error(result?.error || '備註保存失敗');
+                }
+            } catch (error) {
+                console.error('備註保存錯誤:', error); // 調試信息
+                // 失敗時恢復原始值
+                productsData[currentRowIndex][10] = originalNote;
+                renderProducts();
+                applyFilters();
+                showSyncIndicator('error', '❌ 備註保存失敗');
+                alert(`備註保存失敗: ${error.message}`);
+            }
+        }
+
         // 自動刷新 (智能同步，避免衝突)
         async function refreshProducts() {
             if (isUpdating) return; // 如果正在更新中，跳過
@@ -1532,6 +1699,8 @@
                     statusMatch = status === '要補貨';
                 } else if (currentFilter === 'pending') {
                     statusMatch = !status || status === '';
+                } else if (currentFilter === 'position-error') {
+                    statusMatch = status === '倉位錯';
                 }
                 
                 // 顯示或隱藏卡片

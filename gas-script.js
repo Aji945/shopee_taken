@@ -13,26 +13,26 @@ function clearDataAndShopeeHJRange() {
 
   sheet.getRange("A1").setValue("請先點X清除後，在這裡貼上，並按+");
 
-  // -------- 2️⃣ 清空「蝦皮」工作表中 H1:J到最後有資料的列 --------
+  // -------- 2️⃣ 清空「蝦皮」工作表中 H1:K到最後有資料的列 --------
   const shopee = ss.getSheetByName("蝦皮");
   if (!shopee) {
     Logger.log("⚠️ 找不到名為『蝦皮』的工作表");
     return;
   }
 
-  const rangeHJ = shopee.getRange("H:J").getValues(); // 拿 H~J 全列資料
+  const rangeHJK = shopee.getRange("H:K").getValues(); // 拿 H~K 全列資料
   let lastDataRow = 0;
 
-  for (let i = rangeHJ.length - 1; i >= 0; i--) {
-    const row = rangeHJ[i];
-    if (row[0] !== "" || row[1] !== "" || row[2] !== "") {
+  for (let i = rangeHJK.length - 1; i >= 0; i--) {
+    const row = rangeHJK[i];
+    if (row[0] !== "" || row[1] !== "" || row[2] !== "" || row[3] !== "") {
       lastDataRow = i + 1; // 因為 index 是 0-based，要 +1 才是實際列號
       break;
     }
   }
 
   if (lastDataRow > 0) {
-    shopee.getRange(1, 8, lastDataRow, 3).clearContent(); // 從 H1:J{last} 共 3欄
+    shopee.getRange(1, 8, lastDataRow, 4).clearContent(); // 從 H1:K{last} 共 4欄
   }
 }
 
@@ -77,7 +77,7 @@ function doPost(e) {
     }
     
     if (action === 'read') {
-      const values = sheet.getRange('A:J').getValues();
+      const values = sheet.getRange('A:K').getValues();
       // 過濾空行和F欄位為空或非數字的資料
       const filteredData = values.filter((row, index) => {
         if (index === 0) return true; // 保留標題行
@@ -109,8 +109,21 @@ function doGet(e) {
   if (action === 'read') {
     try {
       const sheetId = e.parameter.sheetId;
-      const sheet = SpreadsheetApp.openById(sheetId).getActiveSheet();
-      const values = sheet.getRange('A:J').getValues();
+      if (!sheetId) {
+        throw new Error('缺少 sheetId 參數');
+      }
+      
+      const spreadsheet = SpreadsheetApp.openById(sheetId);
+      if (!spreadsheet) {
+        throw new Error('找不到指定的 Google Sheets');
+      }
+      
+      const sheet = spreadsheet.getSheetByName("蝦皮");
+      if (!sheet) {
+        throw new Error('找不到「蝦皮」工作表，請確認工作表名稱是否正確');
+      }
+      
+      const values = sheet.getRange('A:K').getValues();
       
       // 過濾空行和F欄位為空或非數字的資料
       const filteredData = values.filter((row, index) => {
@@ -157,8 +170,8 @@ function doGet(e) {
       const column = e.parameter.column;
       const value = e.parameter.value;
       
-      const sheet = SpreadsheetApp.openById(sheetId).getActiveSheet();
-      const values = sheet.getRange('A:J').getValues();
+      const sheet = SpreadsheetApp.openById(sheetId).getSheetByName("蝦皮");
+      const values = sheet.getRange('A:K').getValues();
       
       // 根據B欄位(商品名稱)和D欄位(規格名稱)找到對應的列
       let targetRow = -1;
@@ -210,8 +223,8 @@ function doGet(e) {
       const productName = e.parameter.productName;
       const specName = e.parameter.specName;
       
-      const sheet = SpreadsheetApp.openById(sheetId).getActiveSheet();
-      const values = sheet.getRange('A:J').getValues();
+      const sheet = SpreadsheetApp.openById(sheetId).getSheetByName("蝦皮");
+      const values = sheet.getRange('A:K').getValues();
       
       // 根據B欄位(商品名稱)和D欄位(規格名稱)找到對應的列
       let targetRow = -1;
@@ -230,8 +243,8 @@ function doGet(e) {
         throw new Error(`找不到商品: ${productName} - ${specName}`);
       }
       
-      // 清除H、I、J欄位
-      const ranges = [`H${targetRow}`, `I${targetRow}`, `J${targetRow}`];
+      // 清除H、I、J、K欄位
+      const ranges = [`H${targetRow}`, `I${targetRow}`, `J${targetRow}`, `K${targetRow}`];
       ranges.forEach(r => sheet.getRange(r).clearContent());
       
       const result = JSON.stringify({ success: true, clearedRow: targetRow });
@@ -265,8 +278,8 @@ function doGet(e) {
       const specName = e.parameter.specName;
       const updates = JSON.parse(e.parameter.updates);
       
-      const sheet = SpreadsheetApp.openById(sheetId).getActiveSheet();
-      const values = sheet.getRange('A:J').getValues();
+      const sheet = SpreadsheetApp.openById(sheetId).getSheetByName("蝦皮");
+      const values = sheet.getRange('A:K').getValues();
       
       // 根據B欄位(商品名稱)和D欄位(規格名稱)找到對應的列
       let targetRows = [];
