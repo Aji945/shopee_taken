@@ -1,4 +1,105 @@
+function syncFilterSheetsWithColorAndSort() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const summarySheet = ss.getSheetByName("統整記錄") || ss.insertSheet("統整記錄");
+  const sourceSheets = ["缺量", "倉位錯", "要補貨", "有備註"];
+
+  const now = new Date();
+  const newRows = [];
+
+  // 1️⃣ 撈取來源資料
+  sourceSheets.forEach(name => {
+    const sheet = ss.getSheetByName(name);
+    if (!sheet) return;
+
+    const data = sheet.getDataRange().getValues();
+    if (data.length <= 1) return;
+
+    data.slice(1).forEach(row => {
+      newRows.push([now, name, ...row]);
+    });
+  });
+
+  if (newRows.length === 0) return;
+
+  // 2️⃣ 寫入統整記錄
+  const lastRow = summarySheet.getLastRow();
+  const startRow = lastRow + 1;
+  const endRow = startRow + newRows.length - 1;
+  summarySheet.getRange(startRow, 1, newRows.length, newRows[0].length).setValues(newRows);
+
+  // 3️⃣ 抓出當次寫入的資料（僅排序這段）
+  const newRange = summarySheet.getRange(startRow, 1, newRows.length, newRows[0].length);
+  const newData = newRange.getValues();
+
+  // 4️⃣ 建立 D+F 重複 key map
+  const keyMap = {};
+  newData.forEach((row, idx) => {
+    const key = (row[3] || "").toString().trim() + "||" + (row[5] || "").toString().trim();
+    if (!keyMap[key]) keyMap[key] = [];
+    keyMap[key].push(idx);
+  });
+
+  // 5️⃣ 準備顏色
+  const colorList = ["#ffe5e5", "#e0f7fa", "#e8f5e9", "#fff3e0", "#f3e5f5", "#e1f5fe", "#f9fbe7"];
+  let colorIdx = 0;
+
+  // 6️⃣ 包裝排序 + 上色資訊
+  const coloredRows = newData.map((row, idx) => {
+    const key = (row[3] || "").toString().trim() + "||" + (row[5] || "").toString().trim();
+    const color = keyMap[key].length > 1 ? colorList[colorIdx % colorList.length] : null;
+    return { row, key, color };
+  });
+
+  // 對 D 欄（index 3）排序
+  coloredRows.sort((a, b) => {
+    const d1 = a.row[3] || "";
+    const d2 = b.row[3] || "";
+    return d1.localeCompare(d2, "zh-Hant");
+  });
+
+  // 7️⃣ 寫回排序後資料
+  summarySheet.getRange(startRow, 1, newRows.length, newRows[0].length)
+              .setValues(coloredRows.map(r => r.row));
+
+  // 8️⃣ 清除背景色、重新上色（僅當次新增範圍）
+  summarySheet.getRange(startRow, 1, newRows.length, newRows[0].length).setBackground(null);
+
+  const colorAssignment = {};
+  coloredRows.forEach((r, i) => {
+    if (!r.color) return;
+    if (!colorAssignment[r.key]) {
+      colorAssignment[r.key] = colorList[colorIdx % colorList.length];
+      colorIdx++;
+    }
+    summarySheet.getRange(startRow + i, 1, 1, newRows[0].length).setBackground(colorAssignment[r.key]);
+  });
+}
+
+function clearRangeA1toM_untilRealLastRowInD() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  const dValues = sheet.getRange("D1:D").getDisplayValues(); // 使用「顯示值」抓實際顯示的內容（會抓到 #N/A）
+
+  let lastRow = 0;
+  for (let i = dValues.length - 1; i >= 0; i--) {
+    const val = dValues[i][0].toString().trim();
+    if (val !== "") {
+      lastRow = i + 1;
+      break;
+    }
+  }
+
+  if (lastRow === 0) return;
+
+  // 從 A1 ~ M{lastRow} 強制清除資料、格式、顏色
+  const range = sheet.getRange(1, 1, lastRow, 13); // A1:M{lastRow}
+  range.clear(); // 比 clearContent() 更強：會清掉格式與錯誤值
+}
+
+
+
+
 function clearDataAndShopeeHJRange() {
+  syncFilterSheetsWithColorAndSort();
   const ss = SpreadsheetApp.getActiveSpreadsheet();
 
   // -------- 1️⃣ 清空當前作用工作表 A:Z（依 A+B 欄最末列）--------
@@ -8,7 +109,7 @@ function clearDataAndShopeeHJRange() {
   const lastRow = Math.max(lastRowA, lastRowB);
 
   if (lastRow > 0) {
-    sheet.getRange(1, 1, lastRow, 26).clearContent(); // A=1, Z=26 共26欄
+    sheet.getRange(1, 1, lastRow, 7).clearContent(); // A=1, Z=26 共26欄
   }
 
   sheet.getRange("A1").setValue("請先點X清除後，在這裡貼上，並按+");
@@ -34,6 +135,8 @@ function clearDataAndShopeeHJRange() {
   if (lastDataRow > 0) {
     shopee.getRange(1, 8, lastDataRow, 4).clearContent(); // 從 H1:K{last} 共 4欄
   }
+
+  
 }
 
 function fillFormulasToGColumnAuto() {
