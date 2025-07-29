@@ -12,173 +12,201 @@ class TruckLocationInjector {
     async init() {
         console.log('🚚 蝦皮貨車位置查詢擴充套件已載入');
         console.log('🔍 當前URL:', window.location.href);
+        console.log('✅ 在 PrintPage 執行功能');
         
-        // 檢查當前頁面狀態
-        if (this.isBlankPage()) {
-            console.log('⏳ 檢測到 about:blank，添加手動觸發按鈕...');
-            this.addManualTriggerButton();
-            this.waitForTargetPage();
-            return;
-        }
+        // 立即防止頁面跳轉（不要延遲）
+        this.preventRedirect();
+        this.injectAntiRedirectScript();
         
-        if (!this.isTargetPage()) {
-            console.log('❌ 非目標頁面，擴充套件待機中...');
-            this.waitForTargetPage();
-            return;
-        }
-        
-        // 載入蝦皮資料
-        await this.loadShopeeData();
-        
-        // 處理頁面商品
-        this.processProductsOnPage();
-        
-        // 監控頁面變化
-        this.observePageChanges();
-        
-        // 添加狀態指示器
-        this.addStatusIndicator();
-    }
-
-    // 檢查是否為空白頁面
-    isBlankPage() {
-        const url = window.location.href;
-        return url === 'about:blank' || url === '';
-    }
-
-    // 在空白頁面添加手動觸發按鈕
-    addManualTriggerButton() {
-        // 檢查是否已經添加過按鈕
-        if (document.getElementById('truck-locator-manual-btn')) {
-            return;
-        }
-
-        const button = document.createElement('button');
-        button.id = 'truck-locator-manual-btn';
-        button.innerHTML = '🚚 啟動蝦皮貨車位置查詢';
-        button.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 10000;
-            background: linear-gradient(135deg, #48bb78, #38a169);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
-            transition: all 0.3s ease;
-        `;
-
-        // 添加懸停效果
-        button.addEventListener('mouseenter', () => {
-            button.style.transform = 'translateY(-2px)';
-            button.style.boxShadow = '0 6px 16px rgba(72, 187, 120, 0.4)';
-        });
-
-        button.addEventListener('mouseleave', () => {
-            button.style.transform = 'translateY(0)';
-            button.style.boxShadow = '0 4px 12px rgba(72, 187, 120, 0.3)';
-        });
-
-        // 點擊事件
-        button.addEventListener('click', () => {
-            console.log('🔘 手動觸發蝦皮貨車位置查詢');
-            button.textContent = '⏳ 正在檢查頁面...';
-            button.disabled = true;
+        // 延遲執行以確保頁面內容載入完成
+        setTimeout(async () => {
+            // 載入蝦皮資料
+            await this.loadShopeeData();
             
-            // 檢查當前頁面狀態
-            this.manualCheck();
-        });
-
-        document.body.appendChild(button);
-        console.log('✅ 已添加手動觸發按鈕');
-    }
-
-    // 手動檢查並嘗試初始化
-    manualCheck() {
-        const button = document.getElementById('truck-locator-manual-btn');
-        
-        if (this.isTargetPage()) {
-            console.log('✅ 檢測到目標頁面，開始初始化...');
-            button.textContent = '🚀 正在初始化...';
+            // 處理頁面商品
+            this.processProductsOnPage();
             
-            setTimeout(() => {
-                this.initTargetPage();
-                button.textContent = '✅ 已啟動';
-                button.style.background = 'linear-gradient(135deg, #38a169, #2f855a)';
-                
-                // 5秒後隱藏按鈕
-                setTimeout(() => {
-                    if (button.parentNode) {
-                        button.parentNode.removeChild(button);
-                    }
-                }, 5000);
-            }, 1000);
-        } else {
-            console.log('❌ 非目標頁面，繼續等待...');
-            button.textContent = '❌ 非目標頁面';
-            button.style.background = 'linear-gradient(135deg, #e53e3e, #c53030)';
+            // 監控頁面變化
+            this.observePageChanges();
             
-            // 3秒後恢復按鈕
-            setTimeout(() => {
-                button.textContent = '🚚 啟動蝦皮貨車位置查詢';
-                button.style.background = 'linear-gradient(135deg, #48bb78, #38a169)';
-                button.disabled = false;
-            }, 3000);
-        }
-    }
-
-    // 檢查是否為目標頁面
-    isTargetPage() {
-        const url = window.location.href;
-        return url.includes('pro.ajinerp.com/Common/PrintPage') || 
-               url.includes('pro.ajinerp.com/Order/ShopeeDistribution');
-    }
-
-    // 等待頁面載入到目標URL
-    waitForTargetPage() {
-        let attempts = 0;
-        const maxAttempts = 60; // 60秒
-        
-        const checkInterval = setInterval(() => {
-            attempts++;
-            const currentUrl = window.location.href;
-            console.log(`🔍 檢查 ${attempts}/${maxAttempts}: ${currentUrl}`);
-            
-            if (this.isTargetPage()) {
-                console.log('✅ 目標頁面已載入，開始初始化...');
-                clearInterval(checkInterval);
-                // 延遲一下確保頁面內容完全載入
-                setTimeout(() => {
-                    this.initTargetPage();
-                }, 2000);
-            } else if (attempts >= maxAttempts) {
-                console.log('❌ 等待頁面載入超時');
-                clearInterval(checkInterval);
-            }
+            // 添加狀態指示器
+            this.addStatusIndicator();
         }, 1000);
     }
 
-    // 初始化目標頁面功能
-    async initTargetPage() {
-        console.log('🚀 開始初始化目標頁面功能...');
+    
+    // 防止頁面跳轉到 about:blank
+    preventRedirect() {
+        // 覆寫 window.open 以防止開啟新視窗
+        const originalOpen = window.open;
+        window.open = function(...args) {
+            console.log('🚫 偵測到 window.open 呼叫:', args);
+            if (!args[0] || args[0] === 'about:blank' || args[0] === '') {
+                console.log('🛡️ 阻止開啟 about:blank');
+                return window; // 返回當前視窗而不是開新視窗
+            }
+            return originalOpen.apply(window, args);
+        };
         
-        // 載入蝦皮資料
-        await this.loadShopeeData();
+        // 覆寫 location 相關方法
+        const originalAssign = window.location.assign;
+        const originalReplace = window.location.replace;
+        const originalHref = Object.getOwnPropertyDescriptor(window.location, 'href');
         
-        // 處理頁面商品
-        this.processProductsOnPage();
+        window.location.assign = function(url) {
+            console.log('🚫 偵測到 location.assign:', url);
+            if (!url || url === 'about:blank') {
+                console.log('🛡️ 阻止跳轉到 about:blank (assign)');
+                return;
+            }
+            return originalAssign.call(window.location, url);
+        };
         
-        // 監控頁面變化
-        this.observePageChanges();
+        window.location.replace = function(url) {
+            console.log('🚫 偵測到 location.replace:', url);
+            if (!url || url === 'about:blank') {
+                console.log('🛡️ 阻止跳轉到 about:blank (replace)');
+                return;
+            }
+            return originalReplace.call(window.location, url);
+        };
         
-        // 添加狀態指示器
-        this.addStatusIndicator();
+        // 覆寫 location.href 的 setter
+        Object.defineProperty(window.location, 'href', {
+            get: originalHref.get,
+            set: function(url) {
+                console.log('🚫 偵測到 location.href 設定:', url);
+                if (!url || url === 'about:blank') {
+                    console.log('🛡️ 阻止跳轉到 about:blank (href)');
+                    return;
+                }
+                return originalHref.set.call(this, url);
+            }
+        });
+        
+        // 阻止表單提交
+        document.addEventListener('submit', (e) => {
+            console.log('🚫 偵測到表單提交');
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }, true);
+        
+        // 阻止所有連結點擊
+        document.addEventListener('click', (e) => {
+            if (e.target.tagName === 'A' || e.target.closest('a')) {
+                console.log('🚫 偵測到連結點擊');
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+        }, true);
     }
+    
+    // 注入防跳轉腳本到頁面上下文
+    injectAntiRedirectScript() {
+        const script = document.createElement('script');
+        script.textContent = `
+            console.log('🔒 防跳轉腳本已注入');
+            
+            // 儲存原始方法
+            const _open = window.open;
+            const _assign = window.location.assign;
+            const _replace = window.location.replace;
+            const _href = Object.getOwnPropertyDescriptor(window.location, 'href');
+            
+            // 覆寫 window.open
+            window.open = function(url, ...args) {
+                console.log('🚫 [頁面腳本] 阻止 window.open:', url);
+                if (!url || url === 'about:blank' || url === '') {
+                    return window;
+                }
+                return _open.call(window, url, ...args);
+            };
+            
+            // 覆寫 location.assign
+            window.location.assign = function(url) {
+                console.log('🚫 [頁面腳本] 阻止 location.assign:', url);
+                if (!url || url === 'about:blank') {
+                    return;
+                }
+                return _assign.call(window.location, url);
+            };
+            
+            // 覆寫 location.replace
+            window.location.replace = function(url) {
+                console.log('🚫 [頁面腳本] 阻止 location.replace:', url);
+                if (!url || url === 'about:blank') {
+                    return;
+                }
+                return _replace.call(window.location, url);
+            };
+            
+            // 覆寫 location.href
+            Object.defineProperty(window.location, 'href', {
+                get: _href.get,
+                set: function(url) {
+                    console.log('🚫 [頁面腳本] 阻止 location.href:', url);
+                    if (!url || url === 'about:blank') {
+                        return;
+                    }
+                    return _href.set.call(this, url);
+                },
+                configurable: false
+            });
+            
+            // 覆寫 document.write 和 document.writeln
+            document.write = function() {
+                console.log('🚫 [頁面腳本] 阻止 document.write');
+            };
+            document.writeln = function() {
+                console.log('🚫 [頁面腳本] 阻止 document.writeln');
+            };
+            
+            // 攔截所有 setTimeout 和 setInterval 中的跳轉
+            const _setTimeout = window.setTimeout;
+            const _setInterval = window.setInterval;
+            
+            window.setTimeout = function(func, delay, ...args) {
+                if (typeof func === 'string' && func.includes('about:blank')) {
+                    console.log('🚫 [頁面腳本] 阻止 setTimeout 中的跳轉');
+                    return;
+                }
+                return _setTimeout.call(window, func, delay, ...args);
+            };
+            
+            window.setInterval = function(func, delay, ...args) {
+                if (typeof func === 'string' && func.includes('about:blank')) {
+                    console.log('🚫 [頁面腳本] 阻止 setInterval 中的跳轉');
+                    return;
+                }
+                return _setInterval.call(window, func, delay, ...args);
+            };
+            
+            // 阻止 meta refresh
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    mutation.addedNodes.forEach((node) => {
+                        if (node.tagName === 'META' && node.httpEquiv === 'refresh') {
+                            console.log('🚫 [頁面腳本] 移除 meta refresh');
+                            node.remove();
+                        }
+                    });
+                });
+            });
+            observer.observe(document.head, { childList: true });
+        `;
+        
+        // 插入到頁面最前面
+        (document.head || document.documentElement).insertBefore(script, (document.head || document.documentElement).firstChild);
+        script.remove();
+    }
+
+
+
+
+
+
 
     // Fetch API 請求函數
     async fetchRequest(url, params = {}) {
@@ -611,23 +639,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             }
             sendResponse({ success: true });
             break;
-            
-        case 'forceScan':
-            console.log('🚀 強制掃描當前頁面');
-            // 創建新的實例或重新初始化
-            if (!truckInjector) {
-                truckInjector = new TruckLocationInjector();
-            }
-            
-            // 強制初始化目標頁面功能
-            truckInjector.initTargetPage().then(() => {
-                sendResponse({ success: true, message: '強制掃描已啟動' });
-            }).catch(error => {
-                console.error('強制掃描失敗:', error);
-                sendResponse({ success: false, error: error.message });
-            });
-            
-            return true; // 異步回應
             
         case 'getStats':
             if (truckInjector) {

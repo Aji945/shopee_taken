@@ -13,27 +13,14 @@ chrome.runtime.onInstalled.addListener((details) => {
     }
 });
 
-// 處理擴充套件圖示點擊
+// 處理擴充套件圖示點擊 - 由於只在 PrintPage 運作，此功能已簡化
 chrome.action.onClicked.addListener((tab) => {
-    // 檢查是否在目標頁面
-    if (tab.url && tab.url.includes('pro.ajinerp.com/Common/PrintPage')) {
-        // 重新注入內容腳本
-        chrome.scripting.executeScript({
-            target: { tabId: tab.id },
-            files: ['content-script.js']
-        }).then(() => {
-            console.log('內容腳本已重新注入');
-        }).catch((error) => {
-            console.error('注入內容腳本失敗:', error);
-        });
-    } else {
-        // 不在目標頁面，顯示提示
-        chrome.notifications.create({
-            type: 'basic',
-            title: '蝦皮貨車位置查詢',
-            message: '請先前往打印頁面 (pro.ajinerp.com/Common/PrintPage)'
-        });
-    }
+    // 顯示提示訊息
+    chrome.notifications.create({
+        type: 'basic',
+        title: '蝦皮貨車位置查詢',
+        message: '此擴充套件僅在打印頁面 (pro.ajinerp.com/Common/PrintPage) 自動運作'
+    });
 });
 
 // 監聽來自內容腳本的訊息
@@ -73,24 +60,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 // 當標籤頁更新時重置徽章
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-    console.log('標籤頁更新:', { tabId, status: changeInfo.status, url: tab.url });
-    
     if (changeInfo.status === 'complete' && 
         tab.url && 
-        tab.url.includes('pro.ajinerp.com/Common/PrintPage') &&
-        tab.url !== 'about:blank') {
+        tab.url.includes('pro.ajinerp.com/Common/PrintPage')) {
         // 重置徽章
         chrome.action.setBadgeText({ text: '', tabId: tabId });
-        
-        // 延遲注入內容腳本以確保頁面完全載入
-        setTimeout(() => {
-            chrome.scripting.executeScript({
-                target: { tabId: tabId },
-                files: ['content-script.js']
-            }).catch(error => {
-                console.log('內容腳本已存在或注入失敗:', error);
-            });
-        }, 2000);
+        console.log('PrintPage 已載入，擴充套件將自動運作');
     }
 });
 

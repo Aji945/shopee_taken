@@ -20,18 +20,18 @@
   "content_scripts": [
     {
       "matches": [
-        "https://pro.ajinerp.com/*",
-        "https://pro.ajinerp.com/Common/PrintPage*",
-        "https://pro.ajinerp.com/Order/ShopeeDistribution*"
+        "https://pro.ajinerp.com/Common/PrintPage*"
       ],
-      "js": ["content-script.js"],
-      "css": ["styles.css"],
-      "run_at": "document_idle",
+      "js": ["prevent-redirect.js"],
+      "run_at": "document_start",
       "all_frames": true
     },
     {
-      "matches": ["<all_urls>"],
-      "js": ["about-blank-handler.js"],
+      "matches": [
+        "https://pro.ajinerp.com/Common/PrintPage*"
+      ],
+      "js": ["content-script.js"],
+      "css": ["styles.css"],
       "run_at": "document_idle",
       "all_frames": true
     }
@@ -48,7 +48,7 @@
 
   "web_accessible_resources": [
     {
-      "resources": ["content-script.js", "recreate-page.html"],
+      "resources": ["content-script.js", "prevent-redirect.js", "recreate-page.html"],
       "matches": ["<all_urls>"]
     }
   ]
