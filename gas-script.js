@@ -114,26 +114,26 @@ function clearDataAndShopeeHJRange() {
 
   sheet.getRange("A1").setValue("請先點X清除後，在這裡貼上，並按+");
 
-  // -------- 2️⃣ 清空「蝦皮」工作表中 H1:K到最後有資料的列 --------
+  // -------- 2️⃣ 清空「蝦皮」工作表中 H1:L到最後有資料的列 --------
   const shopee = ss.getSheetByName("蝦皮");
   if (!shopee) {
     Logger.log("⚠️ 找不到名為『蝦皮』的工作表");
     return;
   }
 
-  const rangeHJK = shopee.getRange("H:K").getValues(); // 拿 H~K 全列資料
+  const rangeHJKL = shopee.getRange("H:L").getValues(); // 拿 H~L 全列資料
   let lastDataRow = 0;
 
-  for (let i = rangeHJK.length - 1; i >= 0; i--) {
-    const row = rangeHJK[i];
-    if (row[0] !== "" || row[1] !== "" || row[2] !== "" || row[3] !== "") {
+  for (let i = rangeHJKL.length - 1; i >= 0; i--) {
+    const row = rangeHJKL[i];
+    if (row[0] !== "" || row[1] !== "" || row[2] !== "" || row[3] !== "" || row[4] !== "") {
       lastDataRow = i + 1; // 因為 index 是 0-based，要 +1 才是實際列號
       break;
     }
   }
 
   if (lastDataRow > 0) {
-    shopee.getRange(1, 8, lastDataRow, 4).clearContent(); // 從 H1:K{last} 共 4欄
+    shopee.getRange(1, 8, lastDataRow, 5).clearContent(); // 從 H1:L{last} 共 5欄
   }
 
   
@@ -158,6 +158,27 @@ function fillFormulasToGColumnAuto() {
 // Google Apps Script 代碼
 // 需要部署為Web應用程式，允許匿名存取
 
+// CORS 支援函式
+function createCorsResponse(result, callback) {
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type'
+  };
+  
+  if (callback) {
+    return ContentService
+      .createTextOutput(`${callback}(${result})`)
+      .setMimeType(ContentService.MimeType.JAVASCRIPT)
+      .setHeaders(headers);
+  } else {
+    return ContentService
+      .createTextOutput(result)
+      .setMimeType(ContentService.MimeType.JSON)
+      .setHeaders(headers);
+  }
+}
+
 function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
@@ -180,7 +201,7 @@ function doPost(e) {
     }
     
     if (action === 'read') {
-      const values = sheet.getRange('A:K').getValues();
+      const values = sheet.getRange('A:L').getValues();
       // 過濾空行和F欄位為空或非數字的資料
       const filteredData = values.filter((row, index) => {
         if (index === 0) return true; // 保留標題行
@@ -226,7 +247,7 @@ function doGet(e) {
         throw new Error('找不到「蝦皮」工作表，請確認工作表名稱是否正確');
       }
       
-      const values = sheet.getRange('A:K').getValues();
+      const values = sheet.getRange('A:L').getValues();
       
       // 過濾空行和F欄位為空或非數字的資料
       const filteredData = values.filter((row, index) => {
@@ -242,26 +263,10 @@ function doGet(e) {
         data: filteredData 
       });
       
-      if (callback) {
-        return ContentService
-          .createTextOutput(`${callback}(${result})`)
-          .setMimeType(ContentService.MimeType.JAVASCRIPT);
-      } else {
-        return ContentService
-          .createTextOutput(result)
-          .setMimeType(ContentService.MimeType.JSON);
-      }
+      return createCorsResponse(result, callback);
     } catch (error) {
       const result = JSON.stringify({ success: false, error: error.toString() });
-      if (callback) {
-        return ContentService
-          .createTextOutput(`${callback}(${result})`)
-          .setMimeType(ContentService.MimeType.JAVASCRIPT);
-      } else {
-        return ContentService
-          .createTextOutput(result)
-          .setMimeType(ContentService.MimeType.JSON);
-      }
+      return createCorsResponse(result, callback);
     }
   }
   
@@ -274,7 +279,7 @@ function doGet(e) {
       const value = e.parameter.value;
       
       const sheet = SpreadsheetApp.openById(sheetId).getSheetByName("蝦皮");
-      const values = sheet.getRange('A:K').getValues();
+      const values = sheet.getRange('A:L').getValues();
       
       // 根據B欄位(商品名稱)和D欄位(規格名稱)找到對應的列
       let targetRow = -1;
@@ -297,26 +302,10 @@ function doGet(e) {
       sheet.getRange(range).setValue(value);
       
       const result = JSON.stringify({ success: true, updatedRow: targetRow });
-      if (callback) {
-        return ContentService
-          .createTextOutput(`${callback}(${result})`)
-          .setMimeType(ContentService.MimeType.JAVASCRIPT);
-      } else {
-        return ContentService
-          .createTextOutput(result)
-          .setMimeType(ContentService.MimeType.JSON);
-      }
+      return createCorsResponse(result, callback);
     } catch (error) {
       const result = JSON.stringify({ success: false, error: error.toString() });
-      if (callback) {
-        return ContentService
-          .createTextOutput(`${callback}(${result})`)
-          .setMimeType(ContentService.MimeType.JAVASCRIPT);
-      } else {
-        return ContentService
-          .createTextOutput(result)
-          .setMimeType(ContentService.MimeType.JSON);
-      }
+      return createCorsResponse(result, callback);
     }
   }
   
@@ -327,7 +316,7 @@ function doGet(e) {
       const specName = e.parameter.specName;
       
       const sheet = SpreadsheetApp.openById(sheetId).getSheetByName("蝦皮");
-      const values = sheet.getRange('A:K').getValues();
+      const values = sheet.getRange('A:L').getValues();
       
       // 根據B欄位(商品名稱)和D欄位(規格名稱)找到對應的列
       let targetRow = -1;
@@ -346,31 +335,15 @@ function doGet(e) {
         throw new Error(`找不到商品: ${productName} - ${specName}`);
       }
       
-      // 清除H、I、J、K欄位
-      const ranges = [`H${targetRow}`, `I${targetRow}`, `J${targetRow}`, `K${targetRow}`];
+      // 清除H、I、J、K、L欄位
+      const ranges = [`H${targetRow}`, `I${targetRow}`, `J${targetRow}`, `K${targetRow}`, `L${targetRow}`];
       ranges.forEach(r => sheet.getRange(r).clearContent());
       
       const result = JSON.stringify({ success: true, clearedRow: targetRow });
-      if (callback) {
-        return ContentService
-          .createTextOutput(`${callback}(${result})`)
-          .setMimeType(ContentService.MimeType.JAVASCRIPT);
-      } else {
-        return ContentService
-          .createTextOutput(result)
-          .setMimeType(ContentService.MimeType.JSON);
-      }
+      return createCorsResponse(result, callback);
     } catch (error) {
       const result = JSON.stringify({ success: false, error: error.toString() });
-      if (callback) {
-        return ContentService
-          .createTextOutput(`${callback}(${result})`)
-          .setMimeType(ContentService.MimeType.JAVASCRIPT);
-      } else {
-        return ContentService
-          .createTextOutput(result)
-          .setMimeType(ContentService.MimeType.JSON);
-      }
+      return createCorsResponse(result, callback);
     }
   }
   
@@ -382,7 +355,7 @@ function doGet(e) {
       const updates = JSON.parse(e.parameter.updates);
       
       const sheet = SpreadsheetApp.openById(sheetId).getSheetByName("蝦皮");
-      const values = sheet.getRange('A:K').getValues();
+      const values = sheet.getRange('A:L').getValues();
       
       // 根據B欄位(商品名稱)和D欄位(規格名稱)找到對應的列
       let targetRows = [];
@@ -423,37 +396,13 @@ function doGet(e) {
         operationsCount: updateOperations.length
       });
       
-      if (callback) {
-        return ContentService
-          .createTextOutput(`${callback}(${result})`)
-          .setMimeType(ContentService.MimeType.JAVASCRIPT);
-      } else {
-        return ContentService
-          .createTextOutput(result)
-          .setMimeType(ContentService.MimeType.JSON);
-      }
+      return createCorsResponse(result, callback);
     } catch (error) {
       const result = JSON.stringify({ success: false, error: error.toString() });
-      if (callback) {
-        return ContentService
-          .createTextOutput(`${callback}(${result})`)
-          .setMimeType(ContentService.MimeType.JAVASCRIPT);
-      } else {
-        return ContentService
-          .createTextOutput(result)
-          .setMimeType(ContentService.MimeType.JSON);
-      }
+      return createCorsResponse(result, callback);
     }
   }
   
   const result = JSON.stringify({ message: "蝦皮檢貨系統 API 運行中" });
-  if (callback) {
-    return ContentService
-      .createTextOutput(`${callback}(${result})`)
-      .setMimeType(ContentService.MimeType.JAVASCRIPT);
-  } else {
-    return ContentService
-      .createTextOutput(result)
-      .setMimeType(ContentService.MimeType.JSON);
-  }
+  return createCorsResponse(result, callback);
 }

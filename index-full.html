@@ -252,9 +252,39 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
-        .btn-checked {
+        .btn-truck {
             background: linear-gradient(135deg, #48bb78, #38a169);
             color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .btn-truck-main {
+            flex: 1;
+            padding: 9px 4px;
+            font-size: 24px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-truck-dropdown {
+            width: 40px;
+            border-left: 1px solid rgba(255, 255, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            background: rgba(0, 0, 0, 0.1);
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .btn-truck-dropdown:hover {
+            background: rgba(0, 0, 0, 0.2);
         }
 
         .btn-shortage {
@@ -726,6 +756,68 @@
         .floating-btn.nav-down {
             background: linear-gradient(135deg, #38a169, #2f855a);
         }
+
+        /* 貨車位置選擇模態框樣式 */
+        .truck-sections {
+            max-height: 60vh;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .truck-section {
+            margin-bottom: 20px;
+        }
+
+        .truck-section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .truck-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .truck-grid-3 {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        .truck-position-btn {
+            padding: 15px;
+            font-size: 18px;
+            font-weight: 600;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.9));
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            color: #2d3748;
+        }
+
+        .truck-position-btn:hover {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-color: transparent;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .truck-position-btn:active {
+            transform: scale(0.95);
+        }
+
+        .truck-position-btn.selected {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -800,6 +892,54 @@
         </div>
     </div>
 
+    <!-- 貨車位置選擇 Modal -->
+    <div id="truckModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title">選擇貨車位置</div>
+            <div class="truck-sections">
+                <div class="truck-section">
+                    <div class="truck-section-title">A區</div>
+                    <div class="truck-grid">
+                        <button class="truck-position-btn" onclick="selectTruckPosition('A-1')">A-1</button>
+                        <button class="truck-position-btn" onclick="selectTruckPosition('A-2')">A-2</button>
+                        <button class="truck-position-btn" onclick="selectTruckPosition('A-3')">A-3</button>
+                        <button class="truck-position-btn" onclick="selectTruckPosition('A-4')">A-4</button>
+                    </div>
+                </div>
+                <div class="truck-section">
+                    <div class="truck-section-title">B區</div>
+                    <div class="truck-grid">
+                        <button class="truck-position-btn" onclick="selectTruckPosition('B-1')">B-1</button>
+                        <button class="truck-position-btn" onclick="selectTruckPosition('B-2')">B-2</button>
+                        <button class="truck-position-btn" onclick="selectTruckPosition('B-3')">B-3</button>
+                        <button class="truck-position-btn" onclick="selectTruckPosition('B-4')">B-4</button>
+                    </div>
+                </div>
+                <div class="truck-section">
+                    <div class="truck-section-title">籃子</div>
+                    <div class="truck-grid truck-grid-3">
+                        <button class="truck-position-btn" onclick="selectTruckPosition('籃子1')">籃子1</button>
+                        <button class="truck-position-btn" onclick="selectTruckPosition('籃子2')">籃子2</button>
+                        <button class="truck-position-btn" onclick="selectTruckPosition('籃子3')">籃子3</button>
+                        <button class="truck-position-btn" onclick="selectTruckPosition('籃子4')">籃子4</button>
+                        <button class="truck-position-btn" onclick="selectTruckPosition('籃子5')">籃子5</button>
+                        <button class="truck-position-btn" onclick="selectTruckPosition('籃子6')">籃子6</button>
+                    </div>
+                </div>
+                <div class="truck-section">
+                    <div class="truck-section-title">其他</div>
+                    <div class="truck-grid">
+                        <button class="truck-position-btn" onclick="selectTruckPosition('大箱')">大箱</button>
+                        <button class="truck-position-btn" onclick="selectTruckPosition('地上')">地上</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn btn-cancel" onclick="closeTruckModal()">關閉</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 備註輸入 Modal -->
     <div id="noteModal" class="modal">
         <div class="modal-content">
@@ -827,6 +967,7 @@
         let currentFilter = 'all'; // 當前篩選狀態
         let searchQuery = ''; // 當前搜尋查詢
         let selectedUnit = '入'; // 當前選擇的單位
+        let selectedTruckPosition = 'A-1'; // 記憶的貨車位置
         
         // 工具函數
         function getProductKey(productName, specName) {
@@ -850,8 +991,14 @@
 
         // 初始化
         document.addEventListener('DOMContentLoaded', function() {
+            // 初始化選擇的貨車位置
+            selectedTruckPosition = localStorage.getItem('selectedTruckPosition') || 'A-1';
+            window.selectedTruckPosition = selectedTruckPosition;
+            
+            console.log('初始化貨車位置:', selectedTruckPosition); // 調試用
+            
             loadProducts();
-            setInterval(refreshProducts, 30000); // 每1.5秒自動更新，提升同步速度
+            setInterval(refreshProducts, 30000); // 每30秒自動更新
         });
 
         // JSONP請求函數
@@ -1013,6 +1160,7 @@
                             shortageQty: row[8] || '',
                             stockQty: row[9] || '',
                             userNote: (row[10] && typeof row[10] === 'string') ? row[10] : '', // K欄位的備註
+                            truckPosition: row[11] || '', // L欄位的貨車位置
                             isGroupStart: index === 0, // 是否為群組開始
                             isGroupEnd: index === sameItems.length - 1, // 是否為群組結束
                             groupSize: sameItems.length, // 群組大小
@@ -1041,7 +1189,15 @@
             loadingDiv.style.display = 'none';
             productList.style.display = 'block';
             
-                        const processedProducts = processProductsData(productsData);
+            // 確保 selectedTruckPosition 有值
+            if (!selectedTruckPosition) {
+                selectedTruckPosition = localStorage.getItem('selectedTruckPosition') || 'A-1';
+            }
+            
+            // 更新全域變數以便在渲染時使用
+            window.selectedTruckPosition = selectedTruckPosition;
+            
+            const processedProducts = processProductsData(productsData);
             
             // 按商品名稱+儲位分組渲染
             const productGroups = new Map();
@@ -1064,7 +1220,7 @@
                             ${firstProduct.location || '未設定儲位'} (${products.length}筆)
                         </div>` : ''}
                     ${products.map(product => {
-                        const { originalIndex, mainSku, productName, optionSku, specName, location, quantity, note, status, shortageQty, stockQty, userNote, isGroupStart, isGroupEnd, groupSize, groupIndex } = product;
+                        const { originalIndex, mainSku, productName, optionSku, specName, location, quantity, note, status, shortageQty, stockQty, userNote, truckPosition, isGroupStart, isGroupEnd, groupSize, groupIndex } = product;
                         
                         // 調試信息：檢查第一個產品的userNote
                         if (originalIndex === 0) {
@@ -1091,8 +1247,13 @@
                             }
                             
                             // 永遠顯示所有操作按鍵，但根據當前狀態調整樣式
+                            // 使用當前記憶的貨車位置
+                            const currentTruckPosition = selectedTruckPosition || 'A-1';
                             buttonHtml = `
-                                <button class="action-btn btn-checked ${status === '已檢貨' ? 'active' : ''}" onclick="setStatus(${originalIndex}, '已檢貨')">已檢貨</button>
+                                <button class="action-btn btn-truck ${status === '已檢貨' ? 'active' : ''}" id="truck-btn-${originalIndex}">
+                                    <div class="btn-truck-main" onclick="setTruckPosition(${originalIndex})"><span class="truck-position-text">${currentTruckPosition}</span></div>
+                                    <div class="btn-truck-dropdown" onclick="showTruckModal(${originalIndex})">▼</div>
+                                </button>
                                 <button class="action-btn btn-shortage ${status === '缺量' ? 'active' : ''}" onclick="showQuantityModal(${originalIndex}, 'shortage')">缺量</button>
                                 <button class="action-btn btn-restock ${status === '要補貨' ? 'active' : ''}" onclick="showQuantityModal(${originalIndex}, 'restock')">要補貨</button>
                                 <button class="action-btn btn-position-error ${status === '倉位錯' ? 'active' : ''}" onclick="setStatus(${originalIndex}, '倉位錯')">倉位錯</button>
@@ -1133,6 +1294,13 @@
                                         </div>
                                     </div>` : '';
                                 })()}
+                                ${truckPosition ? `
+                                <div class="variant-details">
+                                    <div class="detail-row">
+                                        <span class="detail-icon">🚚</span>
+                                        <span class="detail-text">貨車位置：${truckPosition}</span>
+                                    </div>
+                                </div>` : ''}
                                 ${statusText ? `<div class="status-display">${statusText}</div>` : ''}
                                 <div class="action-buttons">
                                     ${buttonHtml}
@@ -1164,17 +1332,118 @@
             
             // 1. 立即更新本地資料和UI (包括所有重複項目)
             productsData[rowIndex][7] = status;
+            productsData[rowIndex][11] = selectedTruckPosition; // 同時記錄貨車位置
             
             // 更新所有相同商品名稱+規格名稱的重複項目
             productsData.forEach((row, index) => {
                 if (index !== rowIndex && row[1] === productName && row[3] === specName) {
                     row[7] = status;
+                    row[11] = selectedTruckPosition;
                 }
             });
             
-            // 重新渲染並保持當前篩選狀態
-            renderProducts();
-            applyFilters();
+            // 立即更新UI狀態（不重新渲染）
+            const updateCardForStatus = (index) => {
+                const card = document.getElementById(`card-${index}`);
+                if (card) {
+                    // 清除所有狀態類別
+                    card.classList.remove('checked', 'shortage', 'restock', 'position-error');
+                    
+                    // 添加新狀態
+                    if (status === '已檢貨') {
+                        card.classList.add('checked');
+                    } else if (status === '缺量') {
+                        card.classList.add('shortage');
+                    } else if (status === '要補貨') {
+                        card.classList.add('restock');
+                    } else if (status === '倉位錯') {
+                        card.classList.add('position-error');
+                    }
+                    
+                    // 更新按鈕狀態
+                    const buttons = card.querySelectorAll('.action-btn');
+                    buttons.forEach(btn => btn.classList.remove('active'));
+                    
+                    if (status === '已檢貨') {
+                        const truckBtn = card.querySelector('.btn-truck');
+                        if (truckBtn) truckBtn.classList.add('active');
+                    } else if (status === '缺量') {
+                        const shortageBtn = card.querySelector('.btn-shortage');
+                        if (shortageBtn) shortageBtn.classList.add('active');
+                    } else if (status === '要補貨') {
+                        const restockBtn = card.querySelector('.btn-restock');
+                        if (restockBtn) restockBtn.classList.add('active');
+                    } else if (status === '倉位錯') {
+                        const positionErrorBtn = card.querySelector('.btn-position-error');
+                        if (positionErrorBtn) positionErrorBtn.classList.add('active');
+                    }
+                    
+                    // 更新狀態顯示
+                    let statusDisplay = card.querySelector('.status-display');
+                    let statusText = '';
+                    
+                    if (status === '已檢貨') {
+                        statusText = '✓ 已檢貨';
+                    } else if (status === '缺量') {
+                        statusText = '⚠️ 缺量';
+                    } else if (status === '要補貨') {
+                        statusText = '🔄 要補貨';
+                    } else if (status === '倉位錯') {
+                        statusText = '📍 倉位錯';
+                    }
+                    
+                    if (statusDisplay) {
+                        statusDisplay.textContent = statusText;
+                    } else if (statusText) {
+                        const variantHeader = card.querySelector('.variant-header');
+                        if (variantHeader) {
+                            statusDisplay = document.createElement('div');
+                            statusDisplay.className = 'status-display';
+                            statusDisplay.textContent = statusText;
+                            variantHeader.parentNode.insertBefore(statusDisplay, variantHeader.nextSibling);
+                        }
+                    }
+                    
+                    // 更新或創建貨車位置顯示
+                    const existingTruckDisplay = Array.from(card.querySelectorAll('.variant-details')).find(el => 
+                        el.innerHTML.includes('🚚')
+                    );
+                    
+                    if (existingTruckDisplay) {
+                        const detailText = existingTruckDisplay.querySelector('.detail-text');
+                        if (detailText) {
+                            detailText.textContent = `貨車位置：${selectedTruckPosition}`;
+                        }
+                    } else {
+                        const newTruckDisplay = document.createElement('div');
+                        newTruckDisplay.className = 'variant-details';
+                        newTruckDisplay.innerHTML = `
+                            <div class="detail-row">
+                                <span class="detail-icon">🚚</span>
+                                <span class="detail-text">貨車位置：${selectedTruckPosition}</span>
+                            </div>
+                        `;
+                        
+                        const statusDisplay = card.querySelector('.status-display');
+                        if (statusDisplay) {
+                            statusDisplay.parentNode.insertBefore(newTruckDisplay, statusDisplay);
+                        }
+                    }
+                }
+            };
+            
+            // 更新當前卡片
+            updateCardForStatus(rowIndex);
+            
+            // 更新所有重複項目
+            productsData.forEach((row, index) => {
+                if (index !== rowIndex && row[1] === productName && row[3] === specName) {
+                    updateCardForStatus(index);
+                }
+            });
+            
+            // 更新未處理計數
+            updatePendingCount();
             
             // 2. 標記本地更新
             markLocalUpdate(productName, specName, 'status');
@@ -1190,7 +1459,8 @@
                     updates: JSON.stringify({
                         H: status,
                         I: '',
-                        J: ''
+                        J: '',
+                        L: selectedTruckPosition
                     })
                 });
                 
@@ -1203,14 +1473,43 @@
             } catch (error) {
                 // 上傳失敗時恢復UI狀態
                 productsData[rowIndex][7] = '';
+                productsData[rowIndex][11] = '';
                 // 恢復所有重複項目的狀態
                 productsData.forEach((row, index) => {
                     if (index !== rowIndex && row[1] === productName && row[3] === specName) {
                         row[7] = '';
+                        row[11] = '';
                     }
                 });
-                renderProducts();
-                applyFilters();
+                
+                // 更新UI（移除狀態）
+                const removeCardStatusForSetStatus = (index) => {
+                    const card = document.getElementById(`card-${index}`);
+                    if (card) {
+                        card.classList.remove('checked', 'shortage', 'restock', 'position-error');
+                        const buttons = card.querySelectorAll('.action-btn');
+                        buttons.forEach(btn => btn.classList.remove('active'));
+                        const statusDisplay = card.querySelector('.status-display');
+                        if (statusDisplay) {
+                            statusDisplay.remove();
+                        }
+                        const truckDisplay = Array.from(card.querySelectorAll('.variant-details')).find(el => 
+                            el.innerHTML.includes('🚚')
+                        );
+                        if (truckDisplay) {
+                            truckDisplay.remove();
+                        }
+                    }
+                };
+                
+                removeCardStatusForSetStatus(rowIndex);
+                productsData.forEach((row, index) => {
+                    if (index !== rowIndex && row[1] === productName && row[3] === specName) {
+                        removeCardStatusForSetStatus(index);
+                    }
+                });
+                
+                updatePendingCount();
                 updateSyncStatus('error', '上傳失敗，請重試');
                 showSyncIndicator('error', '❌ 上傳失敗');
                 alert('上傳失敗，請重試');
@@ -1229,12 +1528,14 @@
             const oldStatus = {
                 status: productsData[rowIndex][7],
                 shortage: productsData[rowIndex][8],
-                stock: productsData[rowIndex][9]
+                stock: productsData[rowIndex][9],
+                truckPosition: productsData[rowIndex][11]
             };
             
             productsData[rowIndex][7] = '';
             productsData[rowIndex][8] = '';
             productsData[rowIndex][9] = '';
+            productsData[rowIndex][11] = '';
             
             // 清除所有相同商品名稱+規格名稱的重複項目
             productsData.forEach((row, index) => {
@@ -1242,6 +1543,7 @@
                     row[7] = '';
                     row[8] = '';
                     row[9] = '';
+                    row[11] = '';
                 }
             });
             
@@ -1252,7 +1554,7 @@
             // 2. 標記本地更新
             markLocalUpdate(productName, specName, 'restore');
             
-            // 3. 在背景上傳資料 (批次清除HIJ)
+            // 3. 在背景上傳資料 (批次清除HIJL)
             try {
                 const result = await jsonpRequest(GAS_WEB_APP_URL, {
                     action: 'batchUpdate',
@@ -1262,7 +1564,8 @@
                     updates: JSON.stringify({
                         H: '',
                         I: '',
-                        J: ''
+                        J: '',
+                        L: ''
                     })
                 });
                 
@@ -1276,6 +1579,7 @@
                 productsData[rowIndex][7] = oldStatus.status;
                 productsData[rowIndex][8] = oldStatus.shortage;
                 productsData[rowIndex][9] = oldStatus.stock;
+                productsData[rowIndex][11] = oldStatus.truckPosition;
                 
                 // 恢復所有重複項目的狀態
                 productsData.forEach((row, index) => {
@@ -1283,6 +1587,7 @@
                         row[7] = oldStatus.status;
                         row[8] = oldStatus.shortage;
                         row[9] = oldStatus.stock;
+                        row[11] = oldStatus.truckPosition;
                     }
                 });
                 
@@ -1362,23 +1667,27 @@
             if (currentActionType === 'shortage') {
                 productsData[currentRowIndex][7] = '缺量';
                 productsData[currentRowIndex][8] = quantityWithUnit;
+                productsData[currentRowIndex][11] = selectedTruckPosition; // 同時記錄貨車位置
                 
                 // 更新所有相同商品名稱+規格名稱的重複項目
                 productsData.forEach((row, index) => {
                     if (index !== currentRowIndex && row[1] === productName && row[3] === specName) {
                         row[7] = '缺量';
                         row[8] = quantityWithUnit;
+                        row[11] = selectedTruckPosition;
                     }
                 });
             } else if (currentActionType === 'restock') {
                 productsData[currentRowIndex][7] = '要補貨';
                 productsData[currentRowIndex][9] = quantityWithUnit;
+                productsData[currentRowIndex][11] = selectedTruckPosition; // 同時記錄貨車位置
                 
                 // 更新所有相同商品名稱+規格名稱的重複項目
                 productsData.forEach((row, index) => {
                     if (index !== currentRowIndex && row[1] === productName && row[3] === specName) {
                         row[7] = '要補貨';
                         row[9] = quantityWithUnit;
+                        row[11] = selectedTruckPosition;
                     }
                 });
             }
@@ -1405,13 +1714,15 @@
                     updates = {
                         H: '缺量',
                         I: quantityWithUnit,
-                        J: ''
+                        J: '',
+                        L: selectedTruckPosition
                     };
                 } else if (actionTypeToUpload === 'restock') {
                     updates = {
                         H: '要補貨',
                         I: '',
-                        J: quantityWithUnit
+                        J: quantityWithUnit,
+                        L: selectedTruckPosition
                     };
                 }
                 
@@ -1434,6 +1745,7 @@
                 productsData[rowIndexToUpload][7] = '';
                 productsData[rowIndexToUpload][8] = '';
                 productsData[rowIndexToUpload][9] = '';
+                productsData[rowIndexToUpload][11] = '';
                 
                 // 清除所有重複項目的狀態
                 productsData.forEach((row, index) => {
@@ -1441,6 +1753,7 @@
                         row[7] = '';
                         row[8] = '';
                         row[9] = '';
+                        row[11] = '';
                     }
                 });
                 
@@ -1558,18 +1871,20 @@
                                 }
                             }
                             
-                            // 檢查H-J欄位更新，但保護最近的本地更新
+                            // 檢查H-J和L欄位更新，但保護最近的本地更新
                             const isRecentLocal = isRecentLocalUpdate(productName, specName, 5000); // 5秒內保護
                             
                             if (!isRecentLocal) {
                                 // 沒有最近的本地更新，安全地更新遠端狀態
                                 if (newRow[7] !== currentRow[7] || 
                                     newRow[8] !== currentRow[8] || 
-                                    newRow[9] !== currentRow[9]) {
+                                    newRow[9] !== currentRow[9] ||
+                                    newRow[11] !== currentRow[11]) {
                                     
                                     currentRow[7] = newRow[7];
                                     currentRow[8] = newRow[8];
                                     currentRow[9] = newRow[9];
+                                    currentRow[11] = newRow[11];
                                     hasChanges = true;
                                 }
                             }
@@ -1848,6 +2163,226 @@
             }
         }
 
+        // 更新所有貨車按鈕的顯示
+        function updateAllTruckButtons() {
+            const buttons = document.querySelectorAll('.truck-position-text');
+            buttons.forEach(btn => {
+                btn.textContent = selectedTruckPosition;
+            });
+            // 同時更新全域變數
+            window.selectedTruckPosition = selectedTruckPosition;
+        }
+
+        // 顯示貨車位置選擇模態框
+        function showTruckModal(rowIndex) {
+            currentRowIndex = rowIndex;
+            const modal = document.getElementById('truckModal');
+            modal.style.display = 'block';
+            
+            // 更新按鈕狀態，顯示當前選擇
+            updateTruckButtonStates();
+        }
+
+        // 關閉貨車位置模態框
+        function closeTruckModal() {
+            document.getElementById('truckModal').style.display = 'none';
+            currentRowIndex = null;
+        }
+
+        // 選擇貨車位置
+        function selectTruckPosition(position) {
+            selectedTruckPosition = position;
+            localStorage.setItem('selectedTruckPosition', position);
+            window.selectedTruckPosition = position;
+            
+            console.log('選擇新貨車位置:', position); // 調試用
+            
+            // 關閉模態框
+            closeTruckModal();
+            
+            // 更新所有按鈕上的貨車位置顯示（不重新渲染整個列表）
+            updateAllTruckButtons();
+        }
+
+        // 更新貨車位置按鈕狀態
+        function updateTruckButtonStates() {
+            const buttons = document.querySelectorAll('.truck-position-btn');
+            buttons.forEach(btn => {
+                if (btn.textContent === selectedTruckPosition) {
+                    btn.classList.add('selected');
+                } else {
+                    btn.classList.remove('selected');
+                }
+            });
+        }
+
+        // 設定貨車位置（快速按鈕）
+        async function setTruckPosition(rowIndex) {
+            const product = productsData[rowIndex];
+            const productName = product[1] || ''; // B欄位
+            const specName = product[3] || ''; // D欄位
+            const currentStatus = product[7] || '';
+            const currentTruckPosition = product[11] || '';
+            
+            // 如果已經是已檢貨且貨車位置相同，則切換回未處理狀態
+            if (currentStatus === '已檢貨' && currentTruckPosition === selectedTruckPosition) {
+                restoreStatus(rowIndex);
+                return;
+            }
+            
+            // 1. 立即更新本地資料和UI (包括所有重複項目)
+            productsData[rowIndex][7] = '已檢貨';
+            productsData[rowIndex][11] = selectedTruckPosition;
+            
+            // 更新所有相同商品名稱+規格名稱的重複項目
+            productsData.forEach((row, index) => {
+                if (index !== rowIndex && row[1] === productName && row[3] === specName) {
+                    row[7] = '已檢貨';
+                    row[11] = selectedTruckPosition;
+                }
+            });
+            
+            // 立即更新目標卡片的狀態（不重新渲染）
+            const updateCard = (index) => {
+                const card = document.getElementById(`card-${index}`);
+                if (card) {
+                    card.classList.add('checked');
+                    card.classList.remove('shortage', 'restock', 'position-error');
+                    
+                    // 更新按鈕狀態
+                    const truckBtn = card.querySelector('.btn-truck');
+                    if (truckBtn) {
+                        truckBtn.classList.add('active');
+                    }
+                    
+                    // 更新或創建狀態顯示
+                    let statusDisplay = card.querySelector('.status-display');
+                    if (statusDisplay) {
+                        statusDisplay.textContent = '✓ 已檢貨';
+                    } else {
+                        const variantHeader = card.querySelector('.variant-header');
+                        if (variantHeader) {
+                            statusDisplay = document.createElement('div');
+                            statusDisplay.className = 'status-display';
+                            statusDisplay.textContent = '✓ 已檢貨';
+                            variantHeader.parentNode.insertBefore(statusDisplay, variantHeader.nextSibling);
+                        }
+                    }
+                    
+                    // 更新或創建貨車位置顯示
+                    const existingTruckDisplay = Array.from(card.querySelectorAll('.variant-details')).find(el => 
+                        el.innerHTML.includes('🚚')
+                    );
+                    
+                    if (existingTruckDisplay) {
+                        const detailText = existingTruckDisplay.querySelector('.detail-text');
+                        if (detailText) {
+                            detailText.textContent = `貨車位置：${selectedTruckPosition}`;
+                        }
+                    } else {
+                        const newTruckDisplay = document.createElement('div');
+                        newTruckDisplay.className = 'variant-details';
+                        newTruckDisplay.innerHTML = `
+                            <div class="detail-row">
+                                <span class="detail-icon">🚚</span>
+                                <span class="detail-text">貨車位置：${selectedTruckPosition}</span>
+                            </div>
+                        `;
+                        
+                        // 插入到狀態顯示前
+                        const statusDisplay = card.querySelector('.status-display');
+                        if (statusDisplay) {
+                            statusDisplay.parentNode.insertBefore(newTruckDisplay, statusDisplay);
+                        }
+                    }
+                }
+            };
+            
+            // 更新當前卡片
+            updateCard(rowIndex);
+            
+            // 更新所有重複項目
+            productsData.forEach((row, index) => {
+                if (index !== rowIndex && row[1] === productName && row[3] === specName) {
+                    updateCard(index);
+                }
+            });
+            
+            // 更新未處理計數
+            updatePendingCount();
+            
+            // 2. 標記本地更新
+            markLocalUpdate(productName, specName, 'truck');
+            
+            // 3. 在背景上傳資料
+            showSyncIndicator('uploading', '⬆️ 上傳中...');
+            try {
+                const result = await jsonpRequest(GAS_WEB_APP_URL, {
+                    action: 'batchUpdate',
+                    sheetId: SHEET_ID,
+                    productName: productName,
+                    specName: specName,
+                    updates: JSON.stringify({
+                        H: '已檢貨',
+                        I: '',
+                        J: '',
+                        L: selectedTruckPosition
+                    })
+                });
+                
+                if (result.success) {
+                    updateSyncStatus('success', '資料已同步');
+                    showSyncIndicator('success', '✅ 已同步');
+                } else {
+                    throw new Error(result.error || '上傳失敗');
+                }
+            } catch (error) {
+                // 上傳失敗時恢復UI狀態
+                productsData[rowIndex][7] = '';
+                productsData[rowIndex][11] = '';
+                // 恢復所有重複項目的狀態
+                productsData.forEach((row, index) => {
+                    if (index !== rowIndex && row[1] === productName && row[3] === specName) {
+                        row[7] = '';
+                        row[11] = '';
+                    }
+                });
+                
+                // 更新UI（移除狀態）
+                const removeCardStatus = (index) => {
+                    const card = document.getElementById(`card-${index}`);
+                    if (card) {
+                        card.classList.remove('checked');
+                        const truckBtn = card.querySelector('.btn-truck');
+                        if (truckBtn) {
+                            truckBtn.classList.remove('active');
+                        }
+                        const statusDisplay = card.querySelector('.status-display');
+                        if (statusDisplay) {
+                            statusDisplay.remove();
+                        }
+                        const truckDisplay = Array.from(card.querySelectorAll('.variant-details')).find(el => 
+                            el.innerHTML.includes('🚚')
+                        );
+                        if (truckDisplay) {
+                            truckDisplay.remove();
+                        }
+                    }
+                };
+                
+                removeCardStatus(rowIndex);
+                productsData.forEach((row, index) => {
+                    if (index !== rowIndex && row[1] === productName && row[3] === specName) {
+                        removeCardStatus(index);
+                    }
+                });
+                
+                updatePendingCount();
+                updateSyncStatus('error', '上傳失敗，請重試');
+                showSyncIndicator('error', '❌ 上傳失敗');
+                alert('上傳失敗，請重試');
+            }
+        }
 
     </script>
 </body>

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iframe 測試頁面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .test-iframe {
+            width: 100%;
+            height: 600px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .test-div {
+            width: 100%;
+            height: 600px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            overflow: auto;
+            background: white;
+        }
+        
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 10px 10px 0;
+        }
+        
+        button:hover {
+            background: #0056b3;
+        }
+        
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .comparison-item h3 {
+            margin-top: 0;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="section">
+            <h1>🧪 iframe vs innerHTML 格式保真度測試</h1>
+            <p>這個頁面用來測試 iframe 與直接 innerHTML 在格式保持上的差異</p>
+            
+            <button onclick="loadTestPage()">載入測試頁面</button>
+            <button onclick="clearAll()">清除所有</button>
+        </div>
+        
+        <div class="comparison">
+            <div class="section">
+                <h3>📋 使用 iframe（推薦方法）</h3>
+                <p>使用 srcdoc 屬性將完整 HTML 載入 iframe</p>
+                <iframe id="testIframe" class="test-iframe" sandbox="allow-same-origin allow-scripts"></iframe>
+            </div>
+            
+            <div class="section">
+                <h3>🔧 使用 innerHTML（舊方法）</h3>
+                <p>直接將 HTML 插入 div 容器</p>
+                <div id="testDiv" class="test-div"></div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h3>📊 對比結果</h3>
+            <div id="comparisonResult">
+                <p>點擊「載入測試頁面」開始測試...</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let originalHTML = '';
+        
+        // 載入測試頁面 HTML
+        async function loadTestPage() {
+            try {
+                const response = await fetch('test-page.html');
+                originalHTML = await response.text();
+                
+                console.log('原始 HTML 長度:', originalHTML.length);
+                
+                // 方法1: 使用iframe的srcdoc
+                const iframe = document.getElementById('testIframe');
+                iframe.srcdoc = originalHTML;
+                
+                // 方法2: 使用innerHTML
+                const div = document.getElementById('testDiv');
+                
+                // 從完整HTML中提取body內容
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(originalHTML, 'text/html');
+                const bodyContent = doc.body.innerHTML;
+                const headContent = doc.head.innerHTML;
+                
+                // 創建樣式元素
+                const styleElement = document.createElement('style');
+                
+                // 提取原始CSS
+                const styleMatch = originalHTML.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
+                if (styleMatch) {
+                    styleElement.textContent = styleMatch[1];
+                }
+                
+                // 清空並重建div內容
+                div.innerHTML = '';
+                div.appendChild(styleElement);
+                div.innerHTML += bodyContent;
+                
+                // 顯示對比結果
+                showComparison();
+                
+            } catch (error) {
+                console.error('載入測試頁面失敗:', error);
+                document.getElementById('comparisonResult').innerHTML = 
+                    '<p style="color: red;">❌ 載入失敗: ' + error.message + '</p>';
+            }
+        }
+        
+        function showComparison() {
+            const resultDiv = document.getElementById('comparisonResult');
+            
+            // 等待iframe載入完成
+            setTimeout(() => {
+                const iframe = document.getElementById('testIframe');
+                const div = document.getElementById('testDiv');
+                
+                let iframeLoaded = false;
+                let divLoaded = false;
+                
+                try {
+                    // 檢查iframe內容
+                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    const iframeTable = iframeDoc.querySelector('.content-table');
+                    iframeLoaded = iframeTable !== null;
+                } catch (e) {
+                    console.log('iframe訪問受限:', e.message);
+                }
+                
+                try {
+                    // 檢查div內容
+                    const divTable = div.querySelector('.content-table');
+                    divLoaded = divTable !== null;
+                } catch (e) {
+                    console.log('div檢查失敗:', e.message);
+                }
+                
+                resultDiv.innerHTML = `
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div>
+                            <h4>📋 iframe 方法</h4>
+                            <p>載入狀態: ${iframeLoaded ? '✅ 成功' : '❌ 失敗'}</p>
+                            <p>格式保持: ${iframeLoaded ? '✅ 完整保持原始格式' : '❌ 無法驗證'}</p>
+                            <p>CSS樣式: ${iframeLoaded ? '✅ 完整應用' : '❌ 無法驗證'}</p>
+                            <p>優點: 完全隔離，保持原始結構</p>
+                        </div>
+                        <div>
+                            <h4>🔧 innerHTML 方法</h4>
+                            <p>載入狀態: ${divLoaded ? '✅ 成功' : '❌ 失敗'}</p>
+                            <p>格式保持: ${divLoaded ? '⚠️ 可能受父頁面影響' : '❌ 無法驗證'}</p>
+                            <p>CSS樣式: ${divLoaded ? '⚠️ 樣式可能衝突' : '❌ 無法驗證'}</p>
+                            <p>缺點: 可能與父頁面樣式衝突</p>
+                        </div>
+                    </div>
+                    <div style="margin-top: 20px; padding: 15px; background: #e8f5e9; border-radius: 4px;">
+                        <h4>🎯 結論</h4>
+                        <p><strong>iframe 方法</strong> 是更好的選擇，因為：</p>
+                        <ul>
+                            <li>✅ 完全保持原始頁面的HTML結構和DOCTYPE</li>
+                            <li>✅ CSS樣式完全隔離，不會與父頁面衝突</li>
+                            <li>✅ 支援完整的DOM結構和腳本注入</li>
+                            <li>✅ 更接近原始about:blank頁面的環境</li>
+                        </ul>
+                    </div>
+                `;
+            }, 1000);
+        }
+        
+        function clearAll() {
+            document.getElementById('testIframe').srcdoc = '';
+            document.getElementById('testDiv').innerHTML = '';
+            document.getElementById('comparisonResult').innerHTML = '<p>已清除所有內容</p>';
+        }
+        
+        // 頁面載入完成後的提示
+        window.addEventListener('load', () => {
+            console.log('🧪 iframe 測試頁面已載入');
+            console.log('💡 點擊「載入測試頁面」開始測試格式保真度');
+        });
+    </script>
+</body>
+</html>

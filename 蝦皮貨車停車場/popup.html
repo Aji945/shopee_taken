@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蝦皮貨車位置查詢</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 320px;
+            min-height: 400px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            text-align: center;
+            border-radius: 0 0 15px 15px;
+            margin-bottom: 15px;
+        }
+
+        .header h1 {
+            font-size: 18px;
+            margin-bottom: 5px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .content {
+            padding: 0 15px 15px;
+        }
+
+        .status-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .status-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .status-text {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .status-desc {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .controls {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .control-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+
+        .control-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: #ccc;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .switch.active {
+            background: #48bb78;
+        }
+
+        .switch-handle {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .switch.active .switch-handle {
+            transform: translateX(20px);
+        }
+
+        .btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #718096, #4a5568);
+        }
+
+        .stats {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 15px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            text-align: center;
+        }
+
+        .stat-item {
+            font-size: 12px;
+        }
+
+        .stat-number {
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 3px;
+        }
+
+        .stat-label {
+            color: #666;
+        }
+
+        .found .stat-number { color: #48bb78; }
+        .total .stat-number { color: #667eea; }
+        .missing .stat-number { color: #f56565; }
+
+        .footer {
+            text-align: center;
+            padding: 15px;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚚 貨車位置查詢</h1>
+        <p>自動標記商品的貨車位置</p>
+    </div>
+
+    <div class="content">
+        <div class="status-card">
+            <div class="status-icon" id="statusIcon">⏳</div>
+            <div class="status-text" id="statusText">檢查頁面狀態...</div>
+            <div class="status-desc" id="statusDesc">正在檢測當前頁面</div>
+        </div>
+
+        <div class="controls">
+            <div class="control-item">
+                <span>自動更新</span>
+                <div class="switch" id="autoUpdateSwitch">
+                    <div class="switch-handle"></div>
+                </div>
+            </div>
+            <div class="control-item">
+                <span>顯示通知</span>
+                <div class="switch active" id="notificationSwitch">
+                    <div class="switch-handle"></div>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn" id="refreshBtn">🔄 重新掃描</button>
+        <button class="btn btn-secondary" id="settingsBtn">⚙️ 設定</button>
+        
+        <div class="help-tip" id="helpTip" style="display: none;">
+            <div style="background: rgba(255, 193, 7, 0.1); border-left: 4px solid #ffc107; padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 12px;">
+                <strong>💡 使用提示：</strong><br>
+                • 在目標頁面自動運行<br>
+                • 受限制頁面請點按鈕前往<br>
+                • 支援手動掃描一般網頁
+            </div>
+        </div>
+        
+        <div class="special-tip" id="printPageTip" style="display: none;">
+            <div style="background: rgba(231, 76, 60, 0.1); border-left: 4px solid #e74c3c; padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 12px;">
+                <strong>⚠️ 列印頁面解決方案：</strong><br>
+                about:blank 無法直接使用擴充套件<br><br>
+                <strong>💡 新功能：重建工具</strong><br>
+                1. 點擊「🔧 開啟重建工具」<br>
+                2. 複製列印頁面的 HTML<br>
+                3. 在重建頁面中貼上並掃描<br><br>
+                或使用「📋 查看最近掃描結果」查看之前的資料
+            </div>
+        </div>
+
+        <div class="stats" id="statsPanel" style="display: none;">
+            <div class="stat-item total">
+                <div class="stat-number" id="totalCount">0</div>
+                <div class="stat-label">總數</div>
+            </div>
+            <div class="stat-item found">
+                <div class="stat-number" id="foundCount">0</div>
+                <div class="stat-label">已找到</div>
+            </div>
+            <div class="stat-item missing">
+                <div class="stat-number" id="missingCount">0</div>
+                <div class="stat-label">未找到</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div>蝦皮貨車停車場</div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>
