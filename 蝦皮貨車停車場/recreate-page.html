@@ -232,20 +232,12 @@
                     <li>選擇 <strong>Copy</strong> → <strong>Copy outerHTML</strong> 或 <strong>複製</strong> → <strong>複製 outerHTML</strong></li>
                     <li>將複製的內容貼到下方文字框</li>
                 </ol>
-                
-                <div style="margin-top: 15px; padding: 10px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
-                    <strong>💡 按鈕說明：</strong><br>
-                    • <strong>🔄 重建頁面</strong>：標準模式，會進行最小化包裝<br>
-                    • <strong>💯 完全匹配模式</strong>：完全不修改原始HTML，保持100%一致的格式<br>
-                    • <strong>🚚 掃描貨車位置</strong>：在重建後的頁面中查找並標記貨車位置
-                </div>
             </div>
             
             <textarea id="htmlInput" placeholder="在此貼上完整的 HTML 內容..."></textarea>
             
             <div class="button-group">
                 <button class="btn" onclick="recreatePage()">🔄 重建頁面</button>
-                <button class="btn" onclick="recreatePageExact()" style="background: linear-gradient(135deg, #28a745, #20c997);">💯 完全匹配模式</button>
                 <button class="btn btn-secondary" onclick="scanPage()">🚚 掃描貨車位置</button>
                 <button class="btn btn-warning" onclick="clearAll()">🗑️ 清除</button>
             </div>
@@ -259,7 +251,7 @@
                 <button class="btn btn-secondary" onclick="scanPage()">🚚 掃描貨車位置</button>
             </div>
             
-            <iframe id="outputFrame" sandbox="allow-same-origin allow-scripts allow-forms allow-popups" style="border: 1px solid #ddd; background: white;"></iframe>
+            <iframe id="outputFrame" sandbox="allow-same-origin allow-scripts allow-forms allow-popups"></iframe>
         </div>
     </div>
     
@@ -294,28 +286,29 @@
                     showStatus('⚠️ HTML 格式可能有問題，但嘗試繼續處理...', 'info');
                 }
                 
-                // 完全保持原始HTML結構，不做任何修改
+                // 檢查是否為完整的 HTML 文檔
                 let fullHtml = htmlContent;
-                
-                // 如果是完整的HTML文檔，直接使用
-                if (htmlContent.toLowerCase().includes('<!doctype') || htmlContent.toLowerCase().includes('<html')) {
-                    console.log('📝 偵測到完整的HTML文檔，完全保持原始結構');
-                    fullHtml = htmlContent;
-                } else {
-                    console.log('📝 偵測到HTML片段，嘗試最小化包裝...');
+                if (!htmlContent.toLowerCase().includes('<!doctype') && !htmlContent.toLowerCase().includes('<html')) {
+                    console.log('📝 偵測到不完整的HTML，進行包裝...');
                     
-                    // 對於HTML片段，使用最小的包裝以保持原始樣式
-                    // 不添加任何額外的meta標籤或viewport設定
+                    // 嘗試保留原始的CSS樣式
+                    const styleMatch = htmlContent.match(/<style[^>]*>[\s\S]*?<\/style>/gi);
+                    const styles = styleMatch ? styleMatch.join('\n') : '';
+                    
                     fullHtml = `<!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>重建的列印頁面</title>
+    ${styles}
 </head>
-<body style="margin:0;padding:0;">
+<body>
 ${htmlContent}
 </body>
 </html>`;
+                } else {
+                    console.log('📝 偵測到完整的HTML文檔');
                 }
                 
                 // 記錄HTML大小用於診斷
@@ -323,38 +316,25 @@ ${htmlContent}
                 console.log('📊 是否包含CSS:', fullHtml.includes('<style'));
                 console.log('📊 是否包含表格:', fullHtml.includes('<table') || fullHtml.includes('<tr'));
                 
-                // 清空iframe內容，準備重新載入
-                outputFrame.srcdoc = '';
+                // 將完整HTML寫入iframe
+                outputFrame.onload = function() {
+                    console.log('✅ iframe載入完成');
+                    showStatus('✅ 頁面已重建成功！現在可以使用掃描功能', 'success');
+                    
+                    // 驗證iframe內容
+                    setTimeout(() => {
+                        validateIframeContent();
+                        injectScriptToIframe();
+                    }, 1000);
+                };
                 
-                // 使用延遲載入確保iframe完全清空
-                setTimeout(() => {
-                    // 將完整HTML寫入iframe
-                    outputFrame.onload = function() {
-                        console.log('✅ iframe載入完成');
-                        
-                        // 等待iframe完全渲染
-                        setTimeout(() => {
-                            // 驗證並調整iframe渲染
-                            optimizeIframeRendering();
-                            
-                            // 驗證iframe內容
-                            validateIframeContent();
-                            
-                            // 注入腳本
-                            injectScriptToIframe();
-                            
-                            showStatus('✅ 頁面已重建成功！現在可以使用掃描功能', 'success');
-                        }, 500);
-                    };
-                    
-                    outputFrame.onerror = function(error) {
-                        console.error('❌ iframe載入失敗:', error);
-                        showStatus('❌ 頁面載入失敗，請檢查HTML格式', 'error');
-                    };
-                    
-                    // 使用 srcdoc 來設置iframe內容，保持完整的HTML結構
-                    outputFrame.srcdoc = fullHtml;
-                }, 100);
+                outputFrame.onerror = function(error) {
+                    console.error('❌ iframe載入失敗:', error);
+                    showStatus('❌ 頁面載入失敗，請檢查HTML格式', 'error');
+                };
+                
+                // 使用 srcdoc 來設置iframe內容，保持完整的HTML結構
+                outputFrame.srcdoc = fullHtml;
                 
                 // 顯示輸出區域
                 document.getElementById('outputSection').classList.add('active');
@@ -365,79 +345,6 @@ ${htmlContent}
             } catch (error) {
                 console.error('重建頁面失敗:', error);
                 showStatus('❌ 重建頁面失敗，請確認 HTML 格式正確', 'error');
-            }
-        }
-        
-        // 完全匹配模式重建頁面
-        function recreatePageExact() {
-            const htmlContent = document.getElementById('htmlInput').value.trim();
-            
-            if (!htmlContent) {
-                showStatus('請先貼上 HTML 內容', 'error');
-                return;
-            }
-            
-            try {
-                const outputFrame = document.getElementById('outputFrame');
-                
-                console.log('💯 啟動完全匹配模式...');
-                showStatus('💯 完全匹配模式：保持原始HTML完全不變', 'info');
-                
-                // 完全不修改原始HTML，直接使用
-                const exactHtml = htmlContent;
-                
-                // 記錄診斷信息
-                console.log('📊 完全匹配模式 - HTML大小:', exactHtml.length, '字符');
-                console.log('📊 完全匹配模式 - 原始內容類型:', detectContentType(exactHtml));
-                
-                // 清空iframe並重新載入
-                outputFrame.srcdoc = '';
-                
-                setTimeout(() => {
-                    outputFrame.onload = function() {
-                        console.log('✅ 完全匹配模式 - iframe載入完成');
-                        
-                        setTimeout(() => {
-                            // 在完全匹配模式下，不進行任何渲染優化
-                            // 只驗證內容和注入腳本
-                            validateIframeContent();
-                            injectScriptToIframe();
-                            
-                            showStatus('✅ 完全匹配模式重建成功！格式應該與原始頁面完全一致', 'success');
-                        }, 300);
-                    };
-                    
-                    outputFrame.onerror = function(error) {
-                        console.error('❌ 完全匹配模式載入失敗:', error);
-                        showStatus('❌ 完全匹配模式失敗，請確認HTML格式正確', 'error');
-                    };
-                    
-                    // 直接使用原始HTML，不做任何包裝或修改
-                    outputFrame.srcdoc = exactHtml;
-                }, 100);
-                
-                // 顯示輸出區域
-                document.getElementById('outputSection').classList.add('active');
-                document.getElementById('outputSection').scrollIntoView({ behavior: 'smooth' });
-                
-            } catch (error) {
-                console.error('完全匹配模式失敗:', error);
-                showStatus('❌ 完全匹配模式失敗，請確認 HTML 格式正確', 'error');
-            }
-        }
-        
-        // 檢測內容類型
-        function detectContentType(html) {
-            if (html.toLowerCase().includes('<!doctype')) {
-                return '完整HTML文檔';
-            } else if (html.toLowerCase().includes('<html')) {
-                return 'HTML文檔（無DOCTYPE）';
-            } else if (html.includes('<table') || html.includes('<tr')) {
-                return 'HTML表格片段';
-            } else if (html.includes('<div') || html.includes('<span')) {
-                return 'HTML區塊片段';
-            } else {
-                return '純文字或其他';
             }
         }
         
@@ -458,48 +365,6 @@ ${htmlContent}
             } catch (error) {
                 console.error('❌ HTML驗證失敗:', error);
                 return false;
-            }
-        }
-        
-        // 優化iframe渲染以匹配原始頁面
-        function optimizeIframeRendering() {
-            try {
-                const outputFrame = document.getElementById('outputFrame');
-                const iframeDoc = outputFrame.contentDocument || outputFrame.contentWindow.document;
-                
-                if (!iframeDoc) {
-                    console.warn('⚠️ 無法訪問iframe文檔');
-                    return;
-                }
-                
-                // 確保iframe使用標準模式渲染
-                if (iframeDoc.compatMode !== 'CSS1Compat') {
-                    console.warn('⚠️ iframe不在標準模式，嘗試修正...');
-                }
-                
-                // 移除可能影響佈局的樣式
-                const body = iframeDoc.body;
-                if (body) {
-                    // 重置可能被繼承的樣式
-                    body.style.fontFamily = '';
-                    body.style.fontSize = '';
-                    body.style.lineHeight = '';
-                    
-                    // 確保表格樣式不受影響
-                    const tables = iframeDoc.querySelectorAll('table');
-                    tables.forEach(table => {
-                        // 保持表格原始的border-collapse設定
-                        const computedStyle = iframeDoc.defaultView.getComputedStyle(table);
-                        if (computedStyle.borderCollapse === 'separate') {
-                            table.style.borderCollapse = 'separate';
-                        }
-                    });
-                    
-                    console.log('✅ iframe渲染優化完成');
-                }
-                
-            } catch (error) {
-                console.error('❌ iframe渲染優化失敗:', error);
             }
         }
         
