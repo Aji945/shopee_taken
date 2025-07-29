@@ -1,0 +1,55 @@
+{
+  "manifest_version": 3,
+  "name": "蝦皮貨車停車場",
+  "version": "1.4",
+  "description": "在打印頁面自動顯示商品的貨車位置",
+  
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting"
+  ],
+  
+  "host_permissions": [
+    "https://pro.ajinerp.com/*",
+    "https://script.google.com/*",
+    "http://*/*",
+    "https://*/*"
+  ],
+  
+  "content_scripts": [
+    {
+      "matches": [
+        "https://pro.ajinerp.com/*",
+        "https://pro.ajinerp.com/Common/PrintPage*",
+        "https://pro.ajinerp.com/Order/ShopeeDistribution*"
+      ],
+      "js": ["content-script.js"],
+      "css": ["styles.css"],
+      "run_at": "document_idle",
+      "all_frames": true
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["about-blank-handler.js"],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
+  ],
+  
+  "background": {
+    "service_worker": "background.js"
+  },
+  
+  "action": {
+    "default_title": "蝦皮貨車位置查詢",
+    "default_popup": "popup.html"
+  },
+
+  "web_accessible_resources": [
+    {
+      "resources": ["content-script.js", "recreate-page.html"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

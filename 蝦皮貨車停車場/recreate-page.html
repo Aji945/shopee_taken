@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蝦皮貨車位置 - 重建列印頁面</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .input-section {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+        
+        .input-section h2 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .instructions {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        
+        .instructions h3 {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #1976d2;
+        }
+        
+        .instructions ol {
+            margin-left: 20px;
+            color: #555;
+        }
+        
+        .instructions li {
+            margin-bottom: 5px;
+        }
+        
+        #htmlInput {
+            width: 100%;
+            height: 200px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+        
+        #htmlInput:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn:active {
+            transform: scale(0.98);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #f56565, #e53e3e);
+        }
+        
+        .output-section {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: none;
+        }
+        
+        .output-section.active {
+            display: block;
+        }
+        
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .output-header h2 {
+            font-size: 20px;
+            color: #333;
+        }
+        
+        #outputFrame {
+            width: 100%;
+            height: 800px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+        }
+        
+        .status-message {
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-weight: 500;
+            display: none;
+        }
+        
+        .status-message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status-message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        /* 列印頁面樣式保留 */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .header, .input-section, .button-group, .output-header {
+                display: none;
+            }
+            
+            .output-section {
+                box-shadow: none;
+                padding: 0;
+            }
+            
+            #outputFrame {
+                border: none;
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚚 蝦皮貨車位置查詢 - 重建列印頁面</h1>
+            <p>將 about:blank 列印頁面的 HTML 貼上，即可在此重新顯示並使用擴充套件功能</p>
+        </div>
+        
+        <div class="input-section">
+            <h2>步驟一：貼上 HTML 原始碼</h2>
+            
+            <div class="instructions">
+                <h3>📋 如何複製列印頁面的 HTML：</h3>
+                <ol>
+                    <li>在 about:blank 列印頁面按下 <strong>F12</strong> 開啟開發者工具</li>
+                    <li>切換到 <strong>Elements</strong> 或 <strong>元素</strong> 標籤</li>
+                    <li>在 <strong>&lt;html&gt;</strong> 標籤上按右鍵</li>
+                    <li>選擇 <strong>Copy</strong> → <strong>Copy outerHTML</strong> 或 <strong>複製</strong> → <strong>複製 outerHTML</strong></li>
+                    <li>將複製的內容貼到下方文字框</li>
+                </ol>
+                
+                <div style="margin-top: 15px; padding: 10px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+                    <strong>💡 按鈕說明：</strong><br>
+                    • <strong>🔄 重建頁面</strong>：標準模式，會進行最小化包裝<br>
+                    • <strong>💯 完全匹配模式</strong>：完全不修改原始HTML，保持100%一致的格式<br>
+                    • <strong>🚚 掃描貨車位置</strong>：在重建後的頁面中查找並標記貨車位置
+                </div>
+            </div>
+            
+            <textarea id="htmlInput" placeholder="在此貼上完整的 HTML 內容..."></textarea>
+            
+            <div class="button-group">
+                <button class="btn" onclick="recreatePage()">🔄 重建頁面</button>
+                <button class="btn" onclick="recreatePageExact()" style="background: linear-gradient(135deg, #28a745, #20c997);">💯 完全匹配模式</button>
+                <button class="btn btn-secondary" onclick="scanPage()">🚚 掃描貨車位置</button>
+                <button class="btn btn-warning" onclick="clearAll()">🗑️ 清除</button>
+            </div>
+            
+            <div id="statusMessage" class="status-message"></div>
+        </div>
+        
+        <div id="outputSection" class="output-section">
+            <div class="output-header">
+                <h2>步驟二：重建的頁面內容</h2>
+                <button class="btn btn-secondary" onclick="scanPage()">🚚 掃描貨車位置</button>
+            </div>
+            
+            <iframe id="outputFrame" sandbox="allow-same-origin allow-scripts allow-forms allow-popups" style="border: 1px solid #ddd; background: white;"></iframe>
+        </div>
+    </div>
+    
+    <script>
+        // 顯示狀態訊息
+        function showStatus(message, type = 'info') {
+            const statusEl = document.getElementById('statusMessage');
+            statusEl.textContent = message;
+            statusEl.className = `status-message ${type}`;
+            statusEl.style.display = 'block';
+            
+            // 3秒後自動隱藏
+            setTimeout(() => {
+                statusEl.style.display = 'none';
+            }, 3000);
+        }
+        
+        // 重建頁面
+        function recreatePage() {
+            const htmlContent = document.getElementById('htmlInput').value.trim();
+            
+            if (!htmlContent) {
+                showStatus('請先貼上 HTML 內容', 'error');
+                return;
+            }
+            
+            try {
+                const outputFrame = document.getElementById('outputFrame');
+                
+                // 驗證HTML格式
+                if (!validateHTML(htmlContent)) {
+                    showStatus('⚠️ HTML 格式可能有問題，但嘗試繼續處理...', 'info');
+                }
+                
+                // 完全保持原始HTML結構，不做任何修改
+                let fullHtml = htmlContent;
+                
+                // 如果是完整的HTML文檔，直接使用
+                if (htmlContent.toLowerCase().includes('<!doctype') || htmlContent.toLowerCase().includes('<html')) {
+                    console.log('📝 偵測到完整的HTML文檔，完全保持原始結構');
+                    fullHtml = htmlContent;
+                } else {
+                    console.log('📝 偵測到HTML片段，嘗試最小化包裝...');
+                    
+                    // 對於HTML片段，使用最小的包裝以保持原始樣式
+                    // 不添加任何額外的meta標籤或viewport設定
+                    fullHtml = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>重建的列印頁面</title>
+</head>
+<body style="margin:0;padding:0;">
+${htmlContent}
+</body>
+</html>`;
+                }
+                
+                // 記錄HTML大小用於診斷
+                console.log('📊 HTML大小:', fullHtml.length, '字符');
+                console.log('📊 是否包含CSS:', fullHtml.includes('<style'));
+                console.log('📊 是否包含表格:', fullHtml.includes('<table') || fullHtml.includes('<tr'));
+                
+                // 清空iframe內容，準備重新載入
+                outputFrame.srcdoc = '';
+                
+                // 使用延遲載入確保iframe完全清空
+                setTimeout(() => {
+                    // 將完整HTML寫入iframe
+                    outputFrame.onload = function() {
+                        console.log('✅ iframe載入完成');
+                        
+                        // 等待iframe完全渲染
+                        setTimeout(() => {
+                            // 驗證並調整iframe渲染
+                            optimizeIframeRendering();
+                            
+                            // 驗證iframe內容
+                            validateIframeContent();
+                            
+                            // 注入腳本
+                            injectScriptToIframe();
+                            
+                            showStatus('✅ 頁面已重建成功！現在可以使用掃描功能', 'success');
+                        }, 500);
+                    };
+                    
+                    outputFrame.onerror = function(error) {
+                        console.error('❌ iframe載入失敗:', error);
+                        showStatus('❌ 頁面載入失敗，請檢查HTML格式', 'error');
+                    };
+                    
+                    // 使用 srcdoc 來設置iframe內容，保持完整的HTML結構
+                    outputFrame.srcdoc = fullHtml;
+                }, 100);
+                
+                // 顯示輸出區域
+                document.getElementById('outputSection').classList.add('active');
+                
+                // 自動滾動到輸出區域
+                document.getElementById('outputSection').scrollIntoView({ behavior: 'smooth' });
+                
+            } catch (error) {
+                console.error('重建頁面失敗:', error);
+                showStatus('❌ 重建頁面失敗，請確認 HTML 格式正確', 'error');
+            }
+        }
+        
+        // 完全匹配模式重建頁面
+        function recreatePageExact() {
+            const htmlContent = document.getElementById('htmlInput').value.trim();
+            
+            if (!htmlContent) {
+                showStatus('請先貼上 HTML 內容', 'error');
+                return;
+            }
+            
+            try {
+                const outputFrame = document.getElementById('outputFrame');
+                
+                console.log('💯 啟動完全匹配模式...');
+                showStatus('💯 完全匹配模式：保持原始HTML完全不變', 'info');
+                
+                // 完全不修改原始HTML，直接使用
+                const exactHtml = htmlContent;
+                
+                // 記錄診斷信息
+                console.log('📊 完全匹配模式 - HTML大小:', exactHtml.length, '字符');
+                console.log('📊 完全匹配模式 - 原始內容類型:', detectContentType(exactHtml));
+                
+                // 清空iframe並重新載入
+                outputFrame.srcdoc = '';
+                
+                setTimeout(() => {
+                    outputFrame.onload = function() {
+                        console.log('✅ 完全匹配模式 - iframe載入完成');
+                        
+                        setTimeout(() => {
+                            // 在完全匹配模式下，不進行任何渲染優化
+                            // 只驗證內容和注入腳本
+                            validateIframeContent();
+                            injectScriptToIframe();
+                            
+                            showStatus('✅ 完全匹配模式重建成功！格式應該與原始頁面完全一致', 'success');
+                        }, 300);
+                    };
+                    
+                    outputFrame.onerror = function(error) {
+                        console.error('❌ 完全匹配模式載入失敗:', error);
+                        showStatus('❌ 完全匹配模式失敗，請確認HTML格式正確', 'error');
+                    };
+                    
+                    // 直接使用原始HTML，不做任何包裝或修改
+                    outputFrame.srcdoc = exactHtml;
+                }, 100);
+                
+                // 顯示輸出區域
+                document.getElementById('outputSection').classList.add('active');
+                document.getElementById('outputSection').scrollIntoView({ behavior: 'smooth' });
+                
+            } catch (error) {
+                console.error('完全匹配模式失敗:', error);
+                showStatus('❌ 完全匹配模式失敗，請確認 HTML 格式正確', 'error');
+            }
+        }
+        
+        // 檢測內容類型
+        function detectContentType(html) {
+            if (html.toLowerCase().includes('<!doctype')) {
+                return '完整HTML文檔';
+            } else if (html.toLowerCase().includes('<html')) {
+                return 'HTML文檔（無DOCTYPE）';
+            } else if (html.includes('<table') || html.includes('<tr')) {
+                return 'HTML表格片段';
+            } else if (html.includes('<div') || html.includes('<span')) {
+                return 'HTML區塊片段';
+            } else {
+                return '純文字或其他';
+            }
+        }
+        
+        // 驗證HTML格式
+        function validateHTML(html) {
+            try {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                // 檢查解析錯誤
+                const parserError = doc.querySelector('parsererror');
+                if (parserError) {
+                    console.warn('⚠️ HTML解析警告:', parserError.textContent);
+                    return false;
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('❌ HTML驗證失敗:', error);
+                return false;
+            }
+        }
+        
+        // 優化iframe渲染以匹配原始頁面
+        function optimizeIframeRendering() {
+            try {
+                const outputFrame = document.getElementById('outputFrame');
+                const iframeDoc = outputFrame.contentDocument || outputFrame.contentWindow.document;
+                
+                if (!iframeDoc) {
+                    console.warn('⚠️ 無法訪問iframe文檔');
+                    return;
+                }
+                
+                // 確保iframe使用標準模式渲染
+                if (iframeDoc.compatMode !== 'CSS1Compat') {
+                    console.warn('⚠️ iframe不在標準模式，嘗試修正...');
+                }
+                
+                // 移除可能影響佈局的樣式
+                const body = iframeDoc.body;
+                if (body) {
+                    // 重置可能被繼承的樣式
+                    body.style.fontFamily = '';
+                    body.style.fontSize = '';
+                    body.style.lineHeight = '';
+                    
+                    // 確保表格樣式不受影響
+                    const tables = iframeDoc.querySelectorAll('table');
+                    tables.forEach(table => {
+                        // 保持表格原始的border-collapse設定
+                        const computedStyle = iframeDoc.defaultView.getComputedStyle(table);
+                        if (computedStyle.borderCollapse === 'separate') {
+                            table.style.borderCollapse = 'separate';
+                        }
+                    });
+                    
+                    console.log('✅ iframe渲染優化完成');
+                }
+                
+            } catch (error) {
+                console.error('❌ iframe渲染優化失敗:', error);
+            }
+        }
+        
+        // 驗證iframe內容
+        function validateIframeContent() {
+            try {
+                const outputFrame = document.getElementById('outputFrame');
+                const iframeDoc = outputFrame.contentDocument || outputFrame.contentWindow.document;
+                
+                if (!iframeDoc) {
+                    console.warn('⚠️ 無法訪問iframe文檔');
+                    return false;
+                }
+                
+                // 檢查基本結構
+                const hasBody = iframeDoc.body !== null;
+                const hasTable = iframeDoc.querySelector('table') !== null;
+                const hasStyles = iframeDoc.querySelector('style') !== null;
+                const rowCount = iframeDoc.querySelectorAll('tr').length;
+                
+                console.log('🔍 iframe內容驗證:');
+                console.log('  - 有body:', hasBody);
+                console.log('  - 有表格:', hasTable);
+                console.log('  - 有樣式:', hasStyles);
+                console.log('  - 行數:', rowCount);
+                
+                // 更新狀態訊息
+                if (hasTable && rowCount > 0) {
+                    showStatus(`✅ 頁面重建成功！偵測到 ${rowCount} 行內容`, 'success');
+                } else if (hasBody) {
+                    showStatus('✅ 頁面重建成功！格式已保持', 'success');
+                } else {
+                    showStatus('⚠️ 頁面重建完成，但可能缺少部分內容', 'info');
+                    return false;
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('❌ iframe內容驗證失敗:', error);
+                return false;
+            }
+        }
+        
+        // 注入腳本到iframe
+        function injectScriptToIframe() {
+            try {
+                const outputFrame = document.getElementById('outputFrame');
+                const iframeDoc = outputFrame.contentDocument || outputFrame.contentWindow.document;
+                
+                // 創建腳本元素
+                const script = iframeDoc.createElement('script');
+                
+                // 直接嵌入貨車位置查詢的核心邏輯
+                script.textContent = `
+                    // 簡化版的貨車位置查詢邏輯
+                    class SimpleTruckLocator {
+                        constructor() {
+                            this.shopeeData = [];
+                            this.isLoaded = false;
+                            this.GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwFSPXkgQRDm4nUk4ctqrzKBjqeasJ0uSRpBYDNoqX4OlI_PLtiznjomf6viXkrPF4w/exec';
+                            this.SHEET_ID = '1xja90NLxCTbQgxUSdx4nI0-BJXMLr0DHhu7Xln612vI';
+                        }
+
+                        async fetchRequest(url, params = {}) {
+                            try {
+                                const urlParams = new URLSearchParams(params);
+                                const response = await fetch(url + '?' + urlParams.toString(), {
+                                    method: 'GET',
+                                    mode: 'cors'
+                                });
+                                
+                                if (!response.ok) {
+                                    throw new Error('HTTP ' + response.status + ': ' + response.statusText);
+                                }
+                                
+                                const data = await response.json();
+                                return data;
+                            } catch (error) {
+                                throw new Error('網路請求失敗: ' + error.message);
+                            }
+                        }
+
+                        async loadShopeeData() {
+                            try {
+                                console.log('🔄 載入蝦皮資料中...');
+                                
+                                const result = await this.fetchRequest(this.GAS_WEB_APP_URL, {
+                                    action: 'read',
+                                    sheetId: this.SHEET_ID
+                                });
+                                
+                                if (result && result.success && result.data && result.data.length > 1) {
+                                    this.shopeeData = result.data.slice(1);
+                                    this.isLoaded = true;
+                                    console.log('✅ 成功載入蝦皮資料:', this.shopeeData.length, '筆');
+                                    return true;
+                                } else {
+                                    throw new Error(result?.error || '無法取得資料');
+                                }
+                            } catch (error) {
+                                console.error('❌ 載入蝦皮資料失敗:', error);
+                                return false;
+                            }
+                        }
+
+                        findProductRows() {
+                            const possibleSelectors = ['tr.lh-2', 'tr', 'tbody tr', '.table tr'];
+                            let foundRows = [];
+                            
+                            for (const selector of possibleSelectors) {
+                                const elements = document.querySelectorAll(selector);
+                                if (elements.length > 0) {
+                                    foundRows = Array.from(elements);
+                                    break;
+                                }
+                            }
+                            
+                            const rows = [];
+                            foundRows.forEach(row => {
+                                const cells = row.querySelectorAll('td, div, span');
+                                if (cells.length >= 3) {
+                                    const texts = Array.from(cells).slice(0, 5).map(cell => cell.textContent?.trim() || '');
+                                    const firstCellText = texts[0];
+                                    if (firstCellText && 
+                                        !firstCellText.includes('商品名稱') && 
+                                        !firstCellText.includes('選項名稱') &&
+                                        firstCellText.length > 3) {
+                                        rows.push(row);
+                                    }
+                                }
+                            });
+                            
+                            return rows;
+                        }
+
+                        extractProductInfo(row) {
+                            const cells = row.querySelectorAll('td, div, span');
+                            if (cells.length < 3) return null;
+                            
+                            let productName = cells[0]?.textContent?.trim() || '';
+                            let optionName = cells[1]?.textContent?.trim() || '';
+                            
+                            productName = productName.replace(/\\s+/g, ' ').trim();
+                            optionName = optionName.replace(/\\s+/g, ' ').trim();
+                            optionName = optionName.replace(/^'="|"$/g, '').trim();
+                            
+                            if (!productName || productName.length < 5) return null;
+                            
+                            return {
+                                productName: productName,
+                                optionName: optionName || '',
+                                row: row
+                            };
+                        }
+
+                        findTruckLocation(productName, optionName) {
+                            const match = this.shopeeData.find(row => {
+                                const shoppeeProductName = (row[1] || '').trim();
+                                const shoppeeOptionName = (row[3] || '').trim();
+                                
+                                const productMatch = shoppeeProductName === productName;
+                                
+                                let optionMatch = false;
+                                if (!optionName && !shoppeeOptionName) {
+                                    optionMatch = true;
+                                } else if (optionName && shoppeeOptionName) {
+                                    optionMatch = shoppeeOptionName === optionName;
+                                }
+                                
+                                return productMatch && optionMatch;
+                            });
+                            
+                            if (match) {
+                                const truckLocation = match[11] || '';
+                                return truckLocation;
+                            }
+                            
+                            return null;
+                        }
+
+                        injectTruckLocation(row, truckLocation, optionName) {
+                            const cells = row.querySelectorAll('td, div, span');
+                            if (cells.length < 2) return;
+                            
+                            const optionCell = cells[1];
+                            if (!optionCell) return;
+                            
+                            if (optionCell.querySelector('.truck-location-badge')) {
+                                return;
+                            }
+                            
+                            const truckBadge = document.createElement('div');
+                            truckBadge.className = 'truck-location-badge';
+                            truckBadge.innerHTML = '<span class="truck-icon">🚚</span> ' + truckLocation;
+                            truckBadge.style.cssText = 
+                                'display: inline-block;' +
+                                'background: #48bb78;' +
+                                'color: white;' +
+                                'padding: 2px 6px;' +
+                                'border-radius: 4px;' +
+                                'font-size: 12px;' +
+                                'margin-left: 8px;' +
+                                'font-weight: bold;';
+                            
+                            optionCell.appendChild(truckBadge);
+                            row.style.backgroundColor = '#e8f5e9';
+                            row.classList.add('truck-location-found');
+                            
+                            console.log('✅ 已標記: ' + truckLocation + ' (' + optionName + ')');
+                        }
+
+                        async processProductsOnPage() {
+                            if (!this.isLoaded) {
+                                await this.loadShopeeData();
+                            }
+
+                            const productRows = this.findProductRows();
+                            let processedCount = 0;
+                            let foundCount = 0;
+                            
+                            productRows.forEach(row => {
+                                const productInfo = this.extractProductInfo(row);
+                                if (productInfo) {
+                                    processedCount++;
+                                    const truckLocation = this.findTruckLocation(productInfo.productName, productInfo.optionName);
+                                    
+                                    if (truckLocation) {
+                                        foundCount++;
+                                        this.injectTruckLocation(row, truckLocation, productInfo.optionName);
+                                    }
+                                }
+                            });
+                            
+                            console.log('✅ 處理完成: ' + processedCount + ' 個商品，找到 ' + foundCount + ' 個位置');
+                            
+                            // 通知父頁面掃描完成
+                            window.parent.postMessage({
+                                type: 'scanComplete',
+                                data: { total: processedCount, found: foundCount }
+                            }, '*');
+                        }
+                    }
+
+                    // 全域變數
+                    window.truckLocator = new SimpleTruckLocator();
+                    
+                    // 監聽掃描請求
+                    window.addEventListener('message', (event) => {
+                        if (event.data.type === 'startScan') {
+                            window.truckLocator.processProductsOnPage();
+                        }
+                    });
+                    
+                    console.log('🚚 iframe 中的貨車位置查詢已就緒');
+                `;
+                
+                // 將腳本加到iframe的head中
+                iframeDoc.head.appendChild(script);
+                
+                console.log('✅ 腳本已注入到iframe');
+                
+            } catch (error) {
+                console.error('注入腳本失敗:', error);
+            }
+        }
+        
+        // 掃描頁面
+        function scanPage() {
+            const outputFrame = document.getElementById('outputFrame');
+            
+            if (!outputFrame.srcdoc && !outputFrame.src) {
+                showStatus('請先重建頁面', 'error');
+                return;
+            }
+            
+            showStatus('🔍 正在掃描貨車位置...', 'info');
+            
+            try {
+                // 發送訊息給iframe中的腳本
+                outputFrame.contentWindow.postMessage({
+                    type: 'startScan'
+                }, '*');
+                
+            } catch (error) {
+                console.error('掃描失敗:', error);
+                showStatus('❌ 掃描失敗，請重新載入頁面', 'error');
+            }
+        }
+        
+        // 監聽來自iframe的訊息
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'scanComplete') {
+                const { total, found } = event.data.data;
+                if (found > 0) {
+                    showStatus(`✅ 掃描完成！處理 ${total} 個商品，找到 ${found} 個貨車位置`, 'success');
+                } else {
+                    showStatus(`⚠️ 掃描完成，處理 ${total} 個商品，但未找到匹配的貨車位置`, 'info');
+                }
+            }
+        });
+        
+        // 清除所有內容
+        function clearAll() {
+            document.getElementById('htmlInput').value = '';
+            document.getElementById('outputFrame').innerHTML = '';
+            document.getElementById('outputSection').classList.remove('active');
+            showStatus('已清除所有內容', 'info');
+        }
+        
+        // 監聽鍵盤快捷鍵
+        document.addEventListener('keydown', (e) => {
+            // Ctrl/Cmd + Enter 重建頁面
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                recreatePage();
+            }
+            // Ctrl/Cmd + S 掃描頁面
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                scanPage();
+            }
+        });
+        
+        // 頁面載入時的提示
+        window.addEventListener('load', () => {
+            console.log('🚚 蝦皮貨車位置查詢 - 重建列印頁面已就緒');
+        });
+    </script>
+</body>
+</html>

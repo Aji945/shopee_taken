@@ -158,6 +158,27 @@ function fillFormulasToGColumnAuto() {
 // Google Apps Script 代碼
 // 需要部署為Web應用程式，允許匿名存取
 
+// CORS 支援函式
+function createCorsResponse(result, callback) {
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type'
+  };
+  
+  if (callback) {
+    return ContentService
+      .createTextOutput(`${callback}(${result})`)
+      .setMimeType(ContentService.MimeType.JAVASCRIPT)
+      .setHeaders(headers);
+  } else {
+    return ContentService
+      .createTextOutput(result)
+      .setMimeType(ContentService.MimeType.JSON)
+      .setHeaders(headers);
+  }
+}
+
 function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
@@ -242,26 +263,10 @@ function doGet(e) {
         data: filteredData 
       });
       
-      if (callback) {
-        return ContentService
-          .createTextOutput(`${callback}(${result})`)
-          .setMimeType(ContentService.MimeType.JAVASCRIPT);
-      } else {
-        return ContentService
-          .createTextOutput(result)
-          .setMimeType(ContentService.MimeType.JSON);
-      }
+      return createCorsResponse(result, callback);
     } catch (error) {
       const result = JSON.stringify({ success: false, error: error.toString() });
-      if (callback) {
-        return ContentService
-          .createTextOutput(`${callback}(${result})`)
-          .setMimeType(ContentService.MimeType.JAVASCRIPT);
-      } else {
-        return ContentService
-          .createTextOutput(result)
-          .setMimeType(ContentService.MimeType.JSON);
-      }
+      return createCorsResponse(result, callback);
     }
   }
   
@@ -297,26 +302,10 @@ function doGet(e) {
       sheet.getRange(range).setValue(value);
       
       const result = JSON.stringify({ success: true, updatedRow: targetRow });
-      if (callback) {
-        return ContentService
-          .createTextOutput(`${callback}(${result})`)
-          .setMimeType(ContentService.MimeType.JAVASCRIPT);
-      } else {
-        return ContentService
-          .createTextOutput(result)
-          .setMimeType(ContentService.MimeType.JSON);
-      }
+      return createCorsResponse(result, callback);
     } catch (error) {
       const result = JSON.stringify({ success: false, error: error.toString() });
-      if (callback) {
-        return ContentService
-          .createTextOutput(`${callback}(${result})`)
-          .setMimeType(ContentService.MimeType.JAVASCRIPT);
-      } else {
-        return ContentService
-          .createTextOutput(result)
-          .setMimeType(ContentService.MimeType.JSON);
-      }
+      return createCorsResponse(result, callback);
     }
   }
   
@@ -351,26 +340,10 @@ function doGet(e) {
       ranges.forEach(r => sheet.getRange(r).clearContent());
       
       const result = JSON.stringify({ success: true, clearedRow: targetRow });
-      if (callback) {
-        return ContentService
-          .createTextOutput(`${callback}(${result})`)
-          .setMimeType(ContentService.MimeType.JAVASCRIPT);
-      } else {
-        return ContentService
-          .createTextOutput(result)
-          .setMimeType(ContentService.MimeType.JSON);
-      }
+      return createCorsResponse(result, callback);
     } catch (error) {
       const result = JSON.stringify({ success: false, error: error.toString() });
-      if (callback) {
-        return ContentService
-          .createTextOutput(`${callback}(${result})`)
-          .setMimeType(ContentService.MimeType.JAVASCRIPT);
-      } else {
-        return ContentService
-          .createTextOutput(result)
-          .setMimeType(ContentService.MimeType.JSON);
-      }
+      return createCorsResponse(result, callback);
     }
   }
   
@@ -423,37 +396,13 @@ function doGet(e) {
         operationsCount: updateOperations.length
       });
       
-      if (callback) {
-        return ContentService
-          .createTextOutput(`${callback}(${result})`)
-          .setMimeType(ContentService.MimeType.JAVASCRIPT);
-      } else {
-        return ContentService
-          .createTextOutput(result)
-          .setMimeType(ContentService.MimeType.JSON);
-      }
+      return createCorsResponse(result, callback);
     } catch (error) {
       const result = JSON.stringify({ success: false, error: error.toString() });
-      if (callback) {
-        return ContentService
-          .createTextOutput(`${callback}(${result})`)
-          .setMimeType(ContentService.MimeType.JAVASCRIPT);
-      } else {
-        return ContentService
-          .createTextOutput(result)
-          .setMimeType(ContentService.MimeType.JSON);
-      }
+      return createCorsResponse(result, callback);
     }
   }
   
   const result = JSON.stringify({ message: "蝦皮檢貨系統 API 運行中" });
-  if (callback) {
-    return ContentService
-      .createTextOutput(`${callback}(${result})`)
-      .setMimeType(ContentService.MimeType.JAVASCRIPT);
-  } else {
-    return ContentService
-      .createTextOutput(result)
-      .setMimeType(ContentService.MimeType.JSON);
-  }
+  return createCorsResponse(result, callback);
 }

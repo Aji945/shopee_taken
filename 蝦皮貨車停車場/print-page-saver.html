@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蝦皮貨車位置 - 列印頁面保存工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .method-section {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+        
+        .method-section h2 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .step {
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        .step-title {
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 8px;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+            color: #856404;
+        }
+        
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+            color: #155724;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+        }
+        
+        .keyboard-shortcut {
+            background: #e9ecef;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-family: monospace;
+        }
+        
+        .alternative-methods {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .alternative-methods {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚚 蝦皮貨車位置查詢 - 列印頁面保存工具</h1>
+            <p>由於 about:blank 頁面的限制，這裡提供幾種不同的解決方案</p>
+        </div>
+        
+        <div class="method-section">
+            <h2>🎯 方法一：使用鍵盤快捷鍵複製HTML（推薦）</h2>
+            
+            <div class="step">
+                <div class="step-title">步驟 1：開啟開發者工具</div>
+                在 about:blank 列印頁面按下 <span class="keyboard-shortcut">F12</span> 或 <span class="keyboard-shortcut">Ctrl+Shift+I</span>
+            </div>
+            
+            <div class="step">
+                <div class="step-title">步驟 2：切換到 Elements 標籤</div>
+                點擊開發者工具中的 "Elements" 或"元素" 標籤
+            </div>
+            
+            <div class="step">
+                <div class="step-title">步驟 3：選擇 HTML 根元素</div>
+                在 Elements 面板中找到 <code>&lt;html&gt;</code> 標籤並點擊選中
+            </div>
+            
+            <div class="step">
+                <div class="step-title">步驟 4：使用鍵盤快捷鍵複製</div>
+                按下 <span class="keyboard-shortcut">Ctrl+C</span> 複製整個HTML結構
+                <br><small>或者在選中的 &lt;html&gt; 標籤上按右鍵選擇 "Copy" → "Copy outerHTML"</small>
+            </div>
+            
+            <div class="step">
+                <div class="step-title">步驟 5：貼到重建工具</div>
+                <button class="btn btn-success" onclick="openRecreateTool()">🔄 開啟重建工具</button>
+                將複製的HTML貼到工具中並重建
+            </div>
+        </div>
+        
+        <div class="method-section">
+            <h2>💾 方法二：直接保存頁面</h2>
+            
+            <div class="step">
+                <div class="step-title">步驟 1：保存頁面</div>
+                在 about:blank 頁面按下 <span class="keyboard-shortcut">Ctrl+S</span>
+            </div>
+            
+            <div class="step">
+                <div class="step-title">步驟 2：選擇保存位置</div>
+                選擇保存類型為 "網頁，完整" 或 "Web Page, Complete"
+            </div>
+            
+            <div class="step">
+                <div class="step-title">步驟 3：開啟保存的檔案</div>
+                在檔案總管中開啟保存的 .html 檔案，擴充套件就可以正常運作了
+            </div>
+            
+            <div class="success">
+                <strong>✅ 優點：</strong> 最簡單的方法，保存的檔案格式完全相同
+            </div>
+        </div>
+        
+        <div class="alternative-methods">
+            <div class="method-section">
+                <h2>🖨️ 方法三：列印到PDF</h2>
+                
+                <div class="step">
+                    <div class="step-title">步驟 1：列印</div>
+                    按 <span class="keyboard-shortcut">Ctrl+P</span> 開啟列印對話框
+                </div>
+                
+                <div class="step">
+                    <div class="step-title">步驟 2：另存為PDF</div>
+                    選擇 "另存為PDF" 或 "Save as PDF"
+                </div>
+                
+                <div class="step">
+                    <div class="step-title">步驟 3：手動輸入</div>
+                    查看PDF內容，手動輸入到檢貨系統中
+                </div>
+                
+                <div class="warning">
+                    <strong>⚠️ 缺點：</strong> 需要手動輸入，無法自動標記貨車位置
+                </div>
+            </div>
+            
+            <div class="method-section">
+                <h2>📷 方法四：截圖識別</h2>
+                
+                <div class="step">
+                    <div class="step-title">步驟 1：截圖</div>
+                    使用 <span class="keyboard-shortcut">Win+Shift+S</span> 截取頁面
+                </div>
+                
+                <div class="step">
+                    <div class="step-title">步驟 2：文字識別</div>
+                    使用 OCR 工具識別文字內容
+                </div>
+                
+                <div class="step">
+                    <div class="step-title">步驟 3：手動處理</div>
+                    將識別的文字輸入到檢貨系統
+                </div>
+                
+                <div class="warning">
+                    <strong>⚠️ 缺點：</strong> 準確度可能不高，需要人工校對
+                </div>
+            </div>
+        </div>
+        
+        <div class="method-section">
+            <h2>🎯 推薦的完整流程</h2>
+            
+            <div class="success">
+                <strong>最佳解決方案：</strong>
+                <ol style="margin-left: 20px; margin-top: 10px;">
+                    <li>首先嘗試 <strong>方法二（Ctrl+S 保存頁面）</strong> - 最簡單且有效</li>
+                    <li>如果保存失敗，使用 <strong>方法一（F12 + 複製HTML）</strong></li>
+                    <li>將保存的檔案或重建的頁面用蝦皮貨車停車場擴充套件處理</li>
+                    <li>擴充套件會自動標記所有商品的貨車位置</li>
+                </ol>
+            </div>
+            
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="btn btn-success" onclick="openRecreateTool()">🔄 開啟HTML重建工具</button>
+                <button class="btn" onclick="openExtensionPopup()">🚚 使用擴充套件</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function openRecreateTool() {
+            // 開啟重建工具
+            window.open('recreate-page.html', '_blank');
+        }
+        
+        function openExtensionPopup() {
+            alert('請點擊瀏覽器工具列中的 🚚 蝦皮貨車停車場 擴充套件圖示');
+        }
+        
+        // 頁面載入時的提示
+        window.addEventListener('load', () => {
+            console.log('🚚 列印頁面保存工具已載入');
+        });
+    </script>
+</body>
+</html>

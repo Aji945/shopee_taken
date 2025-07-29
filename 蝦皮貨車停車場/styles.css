@@ -1,0 +1,149 @@
+/* 貨車位置查詢擴充套件樣式 */
+
+/* 貨車位置標籤 */
+.truck-location-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #48bb78, #38a169);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 5px;
+    margin-left: 5px;
+    box-shadow: 0 2px 8px rgba(72, 187, 120, 0.3);
+    animation: truck-badge-appear 0.5s ease-out;
+}
+
+.truck-location-badge .truck-icon {
+    margin-right: 3px;
+}
+
+/* 找到貨車位置的商品行樣式 */
+tr.truck-location-found {
+    background-color: rgba(72, 187, 120, 0.05) !important;
+    border-left: 3px solid #48bb78;
+}
+
+tr.truck-location-found:hover {
+    background-color: rgba(72, 187, 120, 0.1) !important;
+}
+
+/* 狀態指示器 */
+.truck-status-indicator {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 10px;
+    padding: 10px 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 200px;
+}
+
+.truck-status-indicator:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2);
+}
+
+.status-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.status-icon {
+    font-size: 16px;
+}
+
+.status-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+}
+
+/* 不同狀態的樣式 */
+.status-loading {
+    border-left: 4px solid #ed8936;
+    background: rgba(237, 137, 54, 0.1);
+}
+
+.status-loading .status-text {
+    color: #c05621;
+}
+
+.status-success {
+    border-left: 4px solid #48bb78;
+    background: rgba(72, 187, 120, 0.1);
+}
+
+.status-success .status-text {
+    color: #2f855a;
+}
+
+.status-error {
+    border-left: 4px solid #f56565;
+    background: rgba(245, 101, 101, 0.1);
+}
+
+.status-error .status-text {
+    color: #c53030;
+}
+
+.status-info {
+    border-left: 4px solid #667eea;
+    background: rgba(102, 126, 234, 0.1);
+}
+
+.status-info .status-text {
+    color: #5a67d8;
+}
+
+/* 動畫效果 */
+@keyframes truck-badge-appear {
+    from {
+        opacity: 0;
+        transform: scale(0.8) translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+    .truck-status-indicator {
+        top: 10px;
+        right: 10px;
+        min-width: 160px;
+        padding: 8px 12px;
+    }
+    
+    .status-text {
+        font-size: 12px;
+    }
+    
+    .truck-location-badge {
+        font-size: 11px;
+        padding: 3px 6px;
+    }
+}
+
+/* 確保不會被原始頁面樣式覆蓋 */
+.truck-location-badge,
+.truck-status-indicator {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+/* 印刷時隱藏狀態指示器 */
+@media print {
+    .truck-status-indicator {
+        display: none !important;
+    }
+}
