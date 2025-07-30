@@ -17,7 +17,7 @@
             .truck-location-badge {
                 display: inline-block;
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: ;
+                color: white;
                 padding: 4px 8px;
                 border-radius: 4px;
                 font-size: 11px;
