@@ -16,11 +16,11 @@
         style.textContent = `
             .truck-location-badge {
                 display: inline-block;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: darkblue;
                 color: white;
                 padding: 4px 8px;
                 border-radius: 4px;
-                font-size: 11px;
+                font-size: 16px;
                 font-weight: bold;
                 margin-left: 8px;
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -209,7 +209,7 @@
                 // 創建貨車位置標籤
                 const badge = document.createElement('span');
                 badge.className = `truck-location-badge ${result.found ? '' : 'not-found'}`;
-                badge.textContent = result.found ? `🚚 ${result.truckLocation}` : '';
+                badge.textContent = result.found ? `${result.truckLocation}` : '';
                 
                 // 將標籤添加到儲存格內容後面
                 optionCell.appendChild(badge);
