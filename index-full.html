@@ -234,22 +234,25 @@
         .action-buttons {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
-            gap: 12px;
+            gap: 8px;
             margin-top: 5px;
         }
 
         .action-btn {
-            padding: 9px 4px;
+            padding: 6px 4px;
             border: none;
             border-radius: 12px;
-            font-size: 24px;
+            font-size: 28px;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             text-align: center;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            text-transform: none;
+            letter-spacing: 0px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .btn-truck {
@@ -259,28 +262,33 @@
             align-items: center;
             justify-content: space-between;
             padding: 0;
-            overflow: hidden;
+            overflow: visible;
         }
 
         .btn-truck-main {
             flex: 1;
-            padding: 9px 4px;
-            font-size: 24px;
+            padding: 6px 2px;
+            font-size: 20px;
             font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            text-transform: none;
+            letter-spacing: 0px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-width: 0;
         }
 
         .btn-truck-dropdown {
-            width: 40px;
+            width: 30px;
             border-left: 1px solid rgba(255, 255, 255, 0.3);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
+            font-size: 14px;
             background: rgba(0, 0, 0, 0.1);
             height: 100%;
             cursor: pointer;
+            flex-shrink: 0;
         }
 
         .btn-truck-dropdown:hover {
@@ -350,19 +358,21 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            padding: 30px;
+            padding: 20px;
             border-radius: 20px;
             width: 90%;
-            max-width: 400px;
+            max-width: 350px;
+            max-height: 90vh;
+            overflow-y: auto;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.2);
             z-index: 1001;
         }
 
         .modal-title {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 700;
-            margin-bottom: 25px;
+            margin-bottom: 15px;
             text-align: center;
             color: #2d3748;
             background: linear-gradient(135deg, #667eea, #764ba2);
@@ -373,12 +383,12 @@
 
         .number-input {
             width: 100%;
-            padding: 18px;
-            font-size: 28px;
+            padding: 12px;
+            font-size: 24px;
             text-align: center;
             border: 2px solid rgba(102, 126, 234, 0.3);
             border-radius: 12px;
-            margin-bottom: 25px;
+            margin-bottom: 15px;
             background: rgba(255, 255, 255, 0.8);
             font-weight: 600;
             color: #2d3748;
@@ -387,16 +397,16 @@
         .number-pad {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 25px;
+            gap: 8px;
+            margin-bottom: 15px;
         }
 
         .number-btn {
-            padding: 14px;
-            font-size: 22px;
+            padding: 10px;
+            font-size: 20px;
             font-weight: 700;
             border: 2px solid rgba(102, 126, 234, 0.2);
-            border-radius: 12px;
+            border-radius: 10px;
             background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.9));
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -417,17 +427,17 @@
         .unit-buttons {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 20px;
+            gap: 10px;
+            margin-bottom: 15px;
         }
 
         .unit-btn {
-            padding: 12px 16px;
+            padding: 10px 14px;
             border: 2px solid rgba(102, 126, 234, 0.3);
-            border-radius: 12px;
+            border-radius: 10px;
             background: rgba(255, 255, 255, 0.9);
             cursor: pointer;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             text-align: center;
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -449,14 +459,14 @@
         .modal-actions {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            gap: 10px;
         }
 
         .modal-btn {
-            padding: 16px;
+            padding: 12px;
             border: none;
-            border-radius: 12px;
-            font-size: 18px;
+            border-radius: 10px;
+            font-size: 16px;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -650,7 +660,7 @@
         }
 
         .filter-btn {
-            padding: 8px 13px;
+            padding: 8px 11px;
             border: 2px solid rgba(102, 126, 234, 0.3);
             border-radius: 10px;
             background: rgba(255, 255, 255, 0.9);
@@ -759,29 +769,29 @@
 
         /* 貨車位置選擇模態框樣式 */
         .truck-sections {
-            max-height: 60vh;
+            max-height: 50vh;
             overflow-y: auto;
-            padding: 10px;
+            padding: 5px;
         }
 
         .truck-section {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .truck-section-title {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 700;
             color: #2d3748;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
             border-bottom: 2px solid rgba(102, 126, 234, 0.2);
         }
 
         .truck-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 10px;
+            gap: 6px;
+            margin-bottom: 8px;
         }
 
         .truck-grid-3 {
@@ -789,11 +799,11 @@
         }
 
         .truck-position-btn {
-            padding: 15px;
-            font-size: 18px;
+            padding: 10px;
+            font-size: 16px;
             font-weight: 600;
             border: 2px solid rgba(102, 126, 234, 0.3);
-            border-radius: 10px;
+            border-radius: 8px;
             background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.9));
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -898,7 +908,7 @@
             <div class="modal-title">選擇貨車位置</div>
             <div class="truck-sections">
                 <div class="truck-section">
-                    <div class="truck-section-title">A區</div>
+                    <div class="truck-section-title">A車</div>
                     <div class="truck-grid">
                         <button class="truck-position-btn" onclick="selectTruckPosition('A-1')">A-1</button>
                         <button class="truck-position-btn" onclick="selectTruckPosition('A-2')">A-2</button>
@@ -908,7 +918,7 @@
                     </div>
                 </div>
                 <div class="truck-section">
-                    <div class="truck-section-title">B區</div>
+                    <div class="truck-section-title">B車</div>
                     <div class="truck-grid">
                         <button class="truck-position-btn" onclick="selectTruckPosition('B-1')">B-1</button>
                         <button class="truck-position-btn" onclick="selectTruckPosition('B-2')">B-2</button>
@@ -1236,16 +1246,16 @@
                             
                             if (status === '已檢貨') {
                                 cardClass = 'checked';
-                                statusText = '✓ 已檢貨';
+                                statusText = `✓ 已檢貨${truckPosition ? ` 🚚${truckPosition}` : ''}`;
                             } else if (status === '缺量') {
                                 cardClass = 'shortage';
-                                statusText = `⚠️ 缺量${shortageQty ? ` (${shortageQty})` : ''}`;
+                                statusText = `⚠️ 缺量${shortageQty ? ` (${shortageQty})` : ''}${truckPosition ? ` 🚚${truckPosition}` : ''}`;
                             } else if (status === '要補貨') {
                                 cardClass = 'restock';
-                                statusText = `🔄 要補貨${stockQty ? ` (庫存:${stockQty})` : ''}`;
+                                statusText = `🔄 要補貨${stockQty ? ` (庫存:${stockQty})` : ''}${truckPosition ? ` 🚚${truckPosition}` : ''}`;
                             } else if (status === '倉位錯') {
                                 cardClass = 'position-error';
-                                statusText = '📍 倉位錯';
+                                statusText = `📍 倉位錯${truckPosition ? ` 🚚${truckPosition}` : ''}`;
                             }
                             
                             // 永遠顯示所有操作按鍵，但根據當前狀態調整樣式
@@ -1253,7 +1263,7 @@
                             const currentTruckPosition = selectedTruckPosition || 'A-1';
                             buttonHtml = `
                                 <button class="action-btn btn-truck ${status === '已檢貨' ? 'active' : ''}" id="truck-btn-${originalIndex}">
-                                    <div class="btn-truck-main" onclick="setTruckPosition(${originalIndex})"><span class="truck-position-text">${currentTruckPosition}</span></div>
+                                    <div class="btn-truck-main" onclick="setTruckPosition(${originalIndex})">${currentTruckPosition}</div>
                                     <div class="btn-truck-dropdown" onclick="showTruckModal(${originalIndex})">▼</div>
                                 </button>
                                 <button class="action-btn btn-shortage ${status === '缺量' ? 'active' : ''}" onclick="showQuantityModal(${originalIndex}, 'shortage')">缺量</button>
@@ -1296,13 +1306,6 @@
                                         </div>
                                     </div>` : '';
                                 })()}
-                                ${truckPosition ? `
-                                <div class="variant-details">
-                                    <div class="detail-row">
-                                        <span class="detail-icon">🚚</span>
-                                        <span class="detail-text">貨車位置：${truckPosition}</span>
-                                    </div>
-                                </div>` : ''}
                                 ${statusText ? `<div class="status-display">${statusText}</div>` : ''}
                                 <div class="action-buttons">
                                     ${buttonHtml}
@@ -1383,15 +1386,18 @@
                     // 更新狀態顯示
                     let statusDisplay = card.querySelector('.status-display');
                     let statusText = '';
+                    const shortageInfo = productsData[index][8] || '';
+                    const stockInfo = productsData[index][9] || '';
+                    const truckPos = selectedTruckPosition || '';
                     
                     if (status === '已檢貨') {
-                        statusText = '✓ 已檢貨';
+                        statusText = `✓ 已檢貨${truckPos ? `  🚚${truckPos}` : ''}`;
                     } else if (status === '缺量') {
-                        statusText = '⚠️ 缺量';
+                        statusText = `⚠️ 缺量${shortageInfo ? ` (${shortageInfo})` : ''}${truckPos ? `  🚚${truckPos}` : ''}`;
                     } else if (status === '要補貨') {
-                        statusText = '🔄 要補貨';
+                        statusText = `🔄 要補貨${stockInfo ? ` (庫存:${stockInfo})` : ''}${truckPos ? `  🚚${truckPos}` : ''}`;
                     } else if (status === '倉位錯') {
-                        statusText = '📍 倉位錯';
+                        statusText = `📍 倉位錯${truckPos ? `  🚚${truckPos}` : ''}`;
                     }
                     
                     if (statusDisplay) {
@@ -1406,31 +1412,7 @@
                         }
                     }
                     
-                    // 更新或創建貨車位置顯示
-                    const existingTruckDisplay = Array.from(card.querySelectorAll('.variant-details')).find(el => 
-                        el.innerHTML.includes('🚚')
-                    );
-                    
-                    if (existingTruckDisplay) {
-                        const detailText = existingTruckDisplay.querySelector('.detail-text');
-                        if (detailText) {
-                            detailText.textContent = `貨車位置：${selectedTruckPosition}`;
-                        }
-                    } else {
-                        const newTruckDisplay = document.createElement('div');
-                        newTruckDisplay.className = 'variant-details';
-                        newTruckDisplay.innerHTML = `
-                            <div class="detail-row">
-                                <span class="detail-icon">🚚</span>
-                                <span class="detail-text">貨車位置：${selectedTruckPosition}</span>
-                            </div>
-                        `;
-                        
-                        const statusDisplay = card.querySelector('.status-display');
-                        if (statusDisplay) {
-                            statusDisplay.parentNode.insertBefore(newTruckDisplay, statusDisplay);
-                        }
-                    }
+                    // 貨車位置已經整合到 status-display 中，不需要單獨顯示
                 }
             };
             
@@ -1495,12 +1477,7 @@
                         if (statusDisplay) {
                             statusDisplay.remove();
                         }
-                        const truckDisplay = Array.from(card.querySelectorAll('.variant-details')).find(el => 
-                            el.innerHTML.includes('🚚')
-                        );
-                        if (truckDisplay) {
-                            truckDisplay.remove();
-                        }
+                        // 貨車位置已經整合到 status-display 中，不需要單獨移除
                     }
                 };
                 
@@ -2167,7 +2144,7 @@
 
         // 更新所有貨車按鈕的顯示
         function updateAllTruckButtons() {
-            const buttons = document.querySelectorAll('.truck-position-text');
+            const buttons = document.querySelectorAll('.btn-truck-main');
             buttons.forEach(btn => {
                 btn.textContent = selectedTruckPosition;
             });
@@ -2257,44 +2234,19 @@
                         truckBtn.classList.add('active');
                     }
                     
-                    // 更新或創建狀態顯示
+                    // 更新或創建狀態顯示 (包含貨車位置)
                     let statusDisplay = card.querySelector('.status-display');
+                    const statusTextWithTruck = `✓ 已檢貨 🚚${selectedTruckPosition}`;
+                    
                     if (statusDisplay) {
-                        statusDisplay.textContent = '✓ 已檢貨';
+                        statusDisplay.textContent = statusTextWithTruck;
                     } else {
                         const variantHeader = card.querySelector('.variant-header');
                         if (variantHeader) {
                             statusDisplay = document.createElement('div');
                             statusDisplay.className = 'status-display';
-                            statusDisplay.textContent = '✓ 已檢貨';
+                            statusDisplay.textContent = statusTextWithTruck;
                             variantHeader.parentNode.insertBefore(statusDisplay, variantHeader.nextSibling);
-                        }
-                    }
-                    
-                    // 更新或創建貨車位置顯示
-                    const existingTruckDisplay = Array.from(card.querySelectorAll('.variant-details')).find(el => 
-                        el.innerHTML.includes('🚚')
-                    );
-                    
-                    if (existingTruckDisplay) {
-                        const detailText = existingTruckDisplay.querySelector('.detail-text');
-                        if (detailText) {
-                            detailText.textContent = `貨車位置：${selectedTruckPosition}`;
-                        }
-                    } else {
-                        const newTruckDisplay = document.createElement('div');
-                        newTruckDisplay.className = 'variant-details';
-                        newTruckDisplay.innerHTML = `
-                            <div class="detail-row">
-                                <span class="detail-icon">🚚</span>
-                                <span class="detail-text">貨車位置：${selectedTruckPosition}</span>
-                            </div>
-                        `;
-                        
-                        // 插入到狀態顯示前
-                        const statusDisplay = card.querySelector('.status-display');
-                        if (statusDisplay) {
-                            statusDisplay.parentNode.insertBefore(newTruckDisplay, statusDisplay);
                         }
                     }
                 }
@@ -2363,12 +2315,7 @@
                         if (statusDisplay) {
                             statusDisplay.remove();
                         }
-                        const truckDisplay = Array.from(card.querySelectorAll('.variant-details')).find(el => 
-                            el.innerHTML.includes('🚚')
-                        );
-                        if (truckDisplay) {
-                            truckDisplay.remove();
-                        }
+                        // 貨車位置已經整合到 status-display 中，不需要單獨移除
                     }
                 };
                 
