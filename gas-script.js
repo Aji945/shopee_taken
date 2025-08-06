@@ -31,53 +31,55 @@ function syncFilterSheetsWithColorAndSort() {
   const newRange = summarySheet.getRange(startRow, 1, newRows.length, newRows[0].length);
   const newData = newRange.getValues();
 
-  // 4️⃣ 建立 D+F 重複 key map
-  const keyMap = {};
-  newData.forEach((row, idx) => {
-    const key = (row[3] || "").toString().trim() + "||" + (row[5] || "").toString().trim();
-    if (!keyMap[key]) keyMap[key] = [];
-    keyMap[key].push(idx);
-  });
-
-  // 5️⃣ 準備顏色
-  const colorList = ["#ffe5e5", "#e0f7fa", "#e8f5e9", "#fff3e0", "#f3e5f5", "#e1f5fe", "#f9fbe7"];
+  // 4️⃣ 檢查現有資料最後一列的顏色，決定起始顏色
+  const colorList = ["#e3f2fd", "#fff3e0"]; // 淺藍和淺黃交替
   let colorIdx = 0;
+  
+  if (lastRow > 0) {
+    // 檢查最後一列的背景色
+    const lastRowBg = summarySheet.getRange(lastRow, 1).getBackground();
+    if (lastRowBg === colorList[0]) {
+      colorIdx = 1; // 如果最後一列是第一種顏色，新資料用第二種
+    } else {
+      colorIdx = 0; // 否則用第一種顏色
+    }
+  }
 
-  // 6️⃣ 包裝排序 + 上色資訊
-  const coloredRows = newData.map((row, idx) => {
-    const key = (row[3] || "").toString().trim() + "||" + (row[5] || "").toString().trim();
-    const color = keyMap[key].length > 1 ? colorList[colorIdx % colorList.length] : null;
-    return { row, key, color };
-  });
-
-  // 對 D 欄（index 3）排序
-  coloredRows.sort((a, b) => {
-    const d1 = a.row[3] || "";
-    const d2 = b.row[3] || "";
+  // 5️⃣ 對 D 欄（index 3）排序
+  newData.sort((a, b) => {
+    const d1 = a[3] || "";
+    const d2 = b[3] || "";
     return d1.localeCompare(d2, "zh-Hant");
   });
 
-  // 7️⃣ 寫回排序後資料
-  summarySheet.getRange(startRow, 1, newRows.length, newRows[0].length)
-              .setValues(coloredRows.map(r => r.row));
+  // 5️⃣ 寫回排序後資料
+  summarySheet.getRange(startRow, 1, newRows.length, newRows[0].length).setValues(newData);
 
-  // 8️⃣ 清除背景色、重新上色（僅當次新增範圍）
-  summarySheet.getRange(startRow, 1, newRows.length, newRows[0].length).setBackground(null);
-
-  const colorAssignment = {};
-  coloredRows.forEach((r, i) => {
-    if (!r.color) return;
-    if (!colorAssignment[r.key]) {
-      colorAssignment[r.key] = colorList[colorIdx % colorList.length];
-      colorIdx++;
+  // 7️⃣ A欄時間相同的列數上色（交替顏色）
+  let currentTimeMillis = null;
+  let currentColor = colorList[colorIdx]; // 當前批次的顏色
+  
+  for (let i = 0; i < newData.length; i++) {
+    const rowTime = newData[i][0]; // A欄時間
+    const timeMillis = Math.floor(rowTime.getTime() / 1000); // 精確到秒
+    
+    // 如果時間改變，切換到下一個顏色
+    if (currentTimeMillis !== null && timeMillis !== currentTimeMillis) {
+      colorIdx = (colorIdx + 1) % colorList.length;
+      currentColor = colorList[colorIdx];
     }
-    summarySheet.getRange(startRow + i, 1, 1, newRows[0].length).setBackground(colorAssignment[r.key]);
-  });
+    
+    currentTimeMillis = timeMillis;
+    
+    // 設定該列背景色（相同時間用相同顏色）
+    summarySheet.getRange(startRow + i, 1, 1, newRows[0].length)
+                .setBackground(currentColor);
+  }
 }
 
 function clearRangeA1toM_untilRealLastRowInD() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  const dValues = sheet.getRange("D1:D").getDisplayValues(); // 使用「顯示值」抓實際顯示的內容（會抓到 #N/A）
+  const dValues = sheet.getRange("D2:D").getDisplayValues(); // 使用「顯示值」抓實際顯示的內容（會抓到 #N/A）
 
   let lastRow = 0;
   for (let i = dValues.length - 1; i >= 0; i--) {
@@ -90,53 +92,64 @@ function clearRangeA1toM_untilRealLastRowInD() {
 
   if (lastRow === 0) return;
 
-  // 從 A1 ~ M{lastRow} 強制清除資料、格式、顏色
-  const range = sheet.getRange(1, 1, lastRow, 13); // A1:M{lastRow}
+  // 從 A1 ~ N{lastRow} 強制清除資料、格式、顏色
+  const range = sheet.getRange(2, 1, lastRow, 14); // A1:N{lastRow}
   range.clear(); // 比 clearContent() 更強：會清掉格式與錯誤值
 }
 
+// 🔧 增強版清除函數
+function clearDataAndShopeeHJRangeFixed() {
+  try {
+    console.log("🚀 開始執行清除作業...");
+    
+    // 先執行同步函數
+    syncFilterSheetsWithColorAndSort();
+    
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
 
+    // -------- 1️⃣ 清空當前作用工作表 --------
+    const sheet = ss.getActiveSheet();
+    const lastRowA = sheet.getRange("A:A").getLastRow();
+    const lastRowB = sheet.getRange("B:B").getLastRow();
+    const lastRow = Math.max(lastRowA, lastRowB);
 
+    console.log(`📋 當前工作表: ${sheet.getName()}, 最後列: ${lastRow}`);
 
-function clearDataAndShopeeHJRange() {
-  syncFilterSheetsWithColorAndSort();
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-
-  // -------- 1️⃣ 清空當前作用工作表 A:Z（依 A+B 欄最末列）--------
-  const sheet = ss.getActiveSheet();
-  const lastRowA = sheet.getRange("A:A").getLastRow();
-  const lastRowB = sheet.getRange("B:B").getLastRow();
-  const lastRow = Math.max(lastRowA, lastRowB);
-
-  if (lastRow > 0) {
-    sheet.getRange(1, 1, lastRow, 7).clearContent(); // A=1, Z=26 共26欄
-  }
-
-  sheet.getRange("A1").setValue("請先點X清除後，在這裡貼上，並按+");
-
-  // -------- 2️⃣ 清空「蝦皮」工作表中 H1:L到最後有資料的列 --------
-  const shopee = ss.getSheetByName("蝦皮");
-  if (!shopee) {
-    Logger.log("⚠️ 找不到名為『蝦皮』的工作表");
-    return;
-  }
-
-  const rangeHJKL = shopee.getRange("H:L").getValues(); // 拿 H~L 全列資料
-  let lastDataRow = 0;
-
-  for (let i = rangeHJKL.length - 1; i >= 0; i--) {
-    const row = rangeHJKL[i];
-    if (row[0] !== "" || row[1] !== "" || row[2] !== "" || row[3] !== "" || row[4] !== "") {
-      lastDataRow = i + 1; // 因為 index 是 0-based，要 +1 才是實際列號
-      break;
+    if (lastRow > 0) {
+      sheet.getRange(1, 1, lastRow, 7).clearContent();
+      console.log(`✅ 已清空 A1:G${lastRow}`);
     }
-  }
 
-  if (lastDataRow > 0) {
-    shopee.getRange(1, 8, lastDataRow, 5).clearContent(); // 從 H1:L{last} 共 5欄
-  }
+    sheet.getRange("A1").setValue("請先點X清除後，在這裡貼上，並按+");
 
-  
+    // -------- 2️⃣ 清空「蝦皮」工作表 --------
+    const shopee = ss.getSheetByName("蝦皮");
+    if (!shopee) {
+      console.log("⚠️ 找不到名為『蝦皮』的工作表");
+      return;
+    }
+
+    const lastDataRow = Math.max(
+      shopee.getRange("H:H").getLastRow(),
+      shopee.getRange("I:I").getLastRow(),
+      shopee.getRange("J:J").getLastRow(),
+      shopee.getRange("K:K").getLastRow(),
+      shopee.getRange("L:L").getLastRow()
+    );
+
+    console.log(`📋 蝦皮工作表 H:L 最後列: ${lastDataRow}`);
+
+    if (lastDataRow > 0) {
+      shopee.getRange(1, 8, lastDataRow, 5).clearContent();
+      console.log(`✅ 已清空蝦皮工作表 H1:L${lastDataRow}`);
+    }
+    
+    console.log("🎉 所有清除作業完成！");
+    
+  } catch (error) {
+    console.error(`❌ 執行錯誤: ${error.message}`);
+    console.error(`錯誤堆疊: ${error.stack}`);
+  }
 }
 
 function fillFormulasToGColumnAuto() {
@@ -155,29 +168,182 @@ function fillFormulasToGColumnAuto() {
 }
 
 
-// Google Apps Script 代碼
-// 需要部署為Web應用程式，允許匿名存取
+function fillFormulasToGColumnAuto() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  const lastRow = sheet.getRange("B:B").getLastRow();
 
-// CORS 支援函式
-function createCorsResponse(result, callback) {
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type'
-  };
-  
-  if (callback) {
-    return ContentService
-      .createTextOutput(`${callback}(${result})`)
-      .setMimeType(ContentService.MimeType.JAVASCRIPT)
-      .setHeaders(headers);
-  } else {
-    return ContentService
-      .createTextOutput(result)
-      .setMimeType(ContentService.MimeType.JSON)
-      .setHeaders(headers);
+  const formulas = [];
+  for (let i = 0; i < lastRow - 4; i++) {
+    const row = i + 5;
+    formulas.push([`=IF(N${row}<>"" , N${row} & "+" & O${row}, "")`]);
+  }
+
+  if (formulas.length > 0) {
+    sheet.getRange(5, 7, formulas.length, 1).setFormulas(formulas);
   }
 }
+
+function fillEColumnWithStorageLocation() {
+  const startTime = new Date();
+  console.log('開始處理...');
+  
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  const lastRow = sheet.getRange("B:B").getLastRow();
+  
+  if (lastRow < 5) {
+    console.log('沒有資料需要處理');
+    return;
+  }
+  
+  // 批次讀取所有需要的資料（一次性讀取，大幅提升效能）
+  const dataRange = sheet.getRange(5, 2, lastRow - 4, 3); // B, C, D 欄位
+  const sourceData = dataRange.getValues();
+  
+  console.log(`讀取了 ${sourceData.length} 行資料`);
+  
+  // 開啟儲位表，指定「儲位表」工作表
+  const storageSpreadsheet = SpreadsheetApp.openById('102GIGymYY1WHIIfX2pCk_zUFGwetUIBYObTGM0EvE8c');
+  const storageSheet = storageSpreadsheet.getSheetByName('儲位表');
+  
+  if (!storageSheet) {
+    console.error('找不到「儲位表」工作表');
+    return;
+  }
+  
+  // 批次讀取儲位表所有資料
+  const storageData = storageSheet.getDataRange().getValues();
+  console.log(`儲位表有 ${storageData.length} 行資料`);
+  
+  // 建立快速查詢的對應表（提升查詢效能）
+  const storageMapByF = new Map(); // 以F欄位為key的對應表
+  const storageMapByCD = new Map(); // 以C+D欄位組合為key的對應表
+  
+  // 預處理儲位表資料，建立查詢索引
+  for (let j = 1; j < storageData.length; j++) { // 跳過標題行
+    const row = storageData[j];
+    const fValue = row[5]; // F欄位
+    const cValue = row[2]; // C欄位
+    const dValue = row[3]; // D欄位
+    const gValue = row[6] || ""; // G欄位
+    
+    // 建立F欄位索引
+    if (fValue && fValue !== "") {
+      storageMapByF.set(fValue, gValue);
+    }
+    
+    // 建立C+D欄位組合索引
+    // 儲位表中的 (無規格型號) 對應到原始資料的空白
+    let normalizedDValue = dValue;
+    if (dValue === "(無規格型號)") {
+      normalizedDValue = "";
+    }
+    const cdKey = `${cValue}|||${normalizedDValue}`; // 使用特殊分隔符避免衝突
+    storageMapByCD.set(cdKey, gValue);
+    
+    // 同時建立反向索引：當儲位表是 (無規格型號) 時，也要能被空白查到
+    if (dValue === "(無規格型號)") {
+      const cdKeyForEmpty = `${cValue}|||`; // 空白選項名稱的key
+      storageMapByCD.set(cdKeyForEmpty, gValue);
+    }
+  }
+  
+  console.log(`建立了 ${storageMapByF.size} 個F欄位索引，${storageMapByCD.size} 個C+D組合索引`);
+  
+  // 批次處理所有資料
+  const results = [];
+  for (let i = 0; i < sourceData.length; i++) {
+    const bValue = sourceData[i][0]; // B欄位（商品名稱）
+    const cValue = sourceData[i][1]; // C欄位
+    const dValue = sourceData[i][2]; // D欄位（選項名稱）
+    
+    let storageLocation = "";
+    
+    if (cValue && cValue !== "") {
+      // 情況1：C欄位有數值，用C欄位數值查詢F欄位索引
+      storageLocation = storageMapByF.get(cValue) || "";
+    } else {
+      // 情況2：C欄位沒有數值，用B+D組合查詢
+      // 處理空白選項名稱的情況
+      let normalizedDValue = dValue || ""; // 確保undefined變成空字串
+      const cdKey = `${bValue}|||${normalizedDValue}`;
+      storageLocation = storageMapByCD.get(cdKey) || "";
+      
+      // 如果沒找到且選項名稱是空白，再試試看查詢 (無規格型號) 的組合
+      if (!storageLocation && normalizedDValue === "") {
+        const cdKeyForNoSpec = `${bValue}|||(無規格型號)`;
+        storageLocation = storageMapByCD.get(cdKeyForNoSpec) || "";
+      }
+    }
+    
+    results.push([storageLocation]);
+  }
+  
+  // 批次寫入結果（一次性寫入，大幅提升效能）
+  if (results.length > 0) {
+    sheet.getRange(5, 5, results.length, 1).setValues(results);
+  }
+  
+  const endTime = new Date();
+  const executionTime = (endTime - startTime) / 1000;
+  console.log(`處理完成！共處理 ${results.length} 行資料，耗時 ${executionTime} 秒`);
+}
+
+// 測試讀取儲位表工作表
+function testStorageSheetAccess() {
+  try {
+    const storageSpreadsheet = SpreadsheetApp.openById('102GIGymYY1WHIIfX2pCk_zUFGwetUIBYObTGM0EvE8c');
+    const storageSheet = storageSpreadsheet.getSheetByName('儲位表');
+    
+    if (!storageSheet) {
+      console.log('找不到「儲位表」工作表，可用的工作表有：');
+      storageSpreadsheet.getSheets().forEach(sheet => {
+        console.log('- ' + sheet.getName());
+      });
+      return '找不到「儲位表」工作表';
+    }
+    
+    console.log('成功存取儲位表工作表：' + storageSheet.getName());
+    
+    // 測試讀取資料
+    const firstCell = storageSheet.getRange('A1').getValue();
+    console.log('儲位表A1儲存格內容：' + firstCell);
+    
+    // 測試讀取幾行資料來確認結構
+    const testData = storageSheet.getRange('A1:G3').getValues();
+    console.log('儲位表前3行資料：');
+    testData.forEach((row, index) => {
+      console.log(`第${index + 1}行: ${row.join(' | ')}`);
+    });
+    
+    return '儲位表工作表權限設置成功！';
+  } catch (error) {
+    console.error('權限設置失敗：' + error.toString());
+    return '權限設置失敗：' + error.toString();
+  }
+}
+
+// 整合函數：同時處理G欄位和E欄位
+function fillFormulasAndStorageLocation() {
+  console.log('=== 開始執行整合處理 ===');
+  
+  const startTime = new Date();
+  
+  // 處理G欄位公式
+  console.log('正在處理G欄位公式...');
+  fillFormulasToGColumnAuto();
+  
+  // 處理E欄位儲位資訊
+  console.log('正在處理E欄位儲位資訊...');
+  fillEColumnWithStorageLocation();
+  
+  const endTime = new Date();
+  const totalTime = (endTime - startTime) / 1000;
+  console.log(`=== 全部處理完成！總耗時 ${totalTime} 秒 ===`);
+}
+
+
+// Google Apps Script 代碼
+// 需要部署為Web應用程式，允許匿名存取
 
 function doPost(e) {
   try {
@@ -263,10 +429,26 @@ function doGet(e) {
         data: filteredData 
       });
       
-      return createCorsResponse(result, callback);
+      if (callback) {
+        return ContentService
+          .createTextOutput(`${callback}(${result})`)
+          .setMimeType(ContentService.MimeType.JAVASCRIPT);
+      } else {
+        return ContentService
+          .createTextOutput(result)
+          .setMimeType(ContentService.MimeType.JSON);
+      }
     } catch (error) {
       const result = JSON.stringify({ success: false, error: error.toString() });
-      return createCorsResponse(result, callback);
+      if (callback) {
+        return ContentService
+          .createTextOutput(`${callback}(${result})`)
+          .setMimeType(ContentService.MimeType.JAVASCRIPT);
+      } else {
+        return ContentService
+          .createTextOutput(result)
+          .setMimeType(ContentService.MimeType.JSON);
+      }
     }
   }
   
@@ -302,10 +484,26 @@ function doGet(e) {
       sheet.getRange(range).setValue(value);
       
       const result = JSON.stringify({ success: true, updatedRow: targetRow });
-      return createCorsResponse(result, callback);
+      if (callback) {
+        return ContentService
+          .createTextOutput(`${callback}(${result})`)
+          .setMimeType(ContentService.MimeType.JAVASCRIPT);
+      } else {
+        return ContentService
+          .createTextOutput(result)
+          .setMimeType(ContentService.MimeType.JSON);
+      }
     } catch (error) {
       const result = JSON.stringify({ success: false, error: error.toString() });
-      return createCorsResponse(result, callback);
+      if (callback) {
+        return ContentService
+          .createTextOutput(`${callback}(${result})`)
+          .setMimeType(ContentService.MimeType.JAVASCRIPT);
+      } else {
+        return ContentService
+          .createTextOutput(result)
+          .setMimeType(ContentService.MimeType.JSON);
+      }
     }
   }
   
@@ -340,10 +538,26 @@ function doGet(e) {
       ranges.forEach(r => sheet.getRange(r).clearContent());
       
       const result = JSON.stringify({ success: true, clearedRow: targetRow });
-      return createCorsResponse(result, callback);
+      if (callback) {
+        return ContentService
+          .createTextOutput(`${callback}(${result})`)
+          .setMimeType(ContentService.MimeType.JAVASCRIPT);
+      } else {
+        return ContentService
+          .createTextOutput(result)
+          .setMimeType(ContentService.MimeType.JSON);
+      }
     } catch (error) {
       const result = JSON.stringify({ success: false, error: error.toString() });
-      return createCorsResponse(result, callback);
+      if (callback) {
+        return ContentService
+          .createTextOutput(`${callback}(${result})`)
+          .setMimeType(ContentService.MimeType.JAVASCRIPT);
+      } else {
+        return ContentService
+          .createTextOutput(result)
+          .setMimeType(ContentService.MimeType.JSON);
+      }
     }
   }
   
@@ -396,13 +610,37 @@ function doGet(e) {
         operationsCount: updateOperations.length
       });
       
-      return createCorsResponse(result, callback);
+      if (callback) {
+        return ContentService
+          .createTextOutput(`${callback}(${result})`)
+          .setMimeType(ContentService.MimeType.JAVASCRIPT);
+      } else {
+        return ContentService
+          .createTextOutput(result)
+          .setMimeType(ContentService.MimeType.JSON);
+      }
     } catch (error) {
       const result = JSON.stringify({ success: false, error: error.toString() });
-      return createCorsResponse(result, callback);
+      if (callback) {
+        return ContentService
+          .createTextOutput(`${callback}(${result})`)
+          .setMimeType(ContentService.MimeType.JAVASCRIPT);
+      } else {
+        return ContentService
+          .createTextOutput(result)
+          .setMimeType(ContentService.MimeType.JSON);
+      }
     }
   }
   
   const result = JSON.stringify({ message: "蝦皮檢貨系統 API 運行中" });
-  return createCorsResponse(result, callback);
+  if (callback) {
+    return ContentService
+      .createTextOutput(`${callback}(${result})`)
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  } else {
+    return ContentService
+      .createTextOutput(result)
+      .setMimeType(ContentService.MimeType.JSON);
+  }
 }
